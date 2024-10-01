@@ -69,7 +69,7 @@ const FormComponent = ({ setLoading, setLocationData }) => {
       if (boldRegex.test(line)) {
         const parts = line.split(boldRegex);
         return (
-          <p key={index} className="text-base text-gray-900">
+          <p key={index} className="text-sm text-gray-900">
             {parts.map((part, i) => 
               i % 2 === 1 ? <span key={i} className="font-bold">{part}</span> : part
             )}
@@ -77,7 +77,12 @@ const FormComponent = ({ setLoading, setLocationData }) => {
         );
       }
 
-      // Parse hyphens
+      // Parse horizontal rule
+      if (line.startsWith('---')) {
+        return <hr key={index} className="border-t border-gray-300 my-4" />;
+      }
+
+      // Parse bullet points
       if (line.startsWith('-')) {
         return (
           <li key={index} className="ml-4 mb-2 text-sm text-gray-700 list-disc">
