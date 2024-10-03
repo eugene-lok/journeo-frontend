@@ -18,8 +18,7 @@ function App() {
 
         <div className="w-2/3 h-full p-6">
           <MapComponent 
-            coordinates={locationData ? locationData.coordinates : []} 
-            addresses={locationData ? locationData.addresses : []} 
+            places={locationData ? locationData.places : []} 
             loading={loading}  // Pass loading state to MapComponent
           />
         </div>

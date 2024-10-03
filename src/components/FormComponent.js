@@ -36,10 +36,12 @@ const FormComponent = ({ setLoading, setLocationData }) => {
       }
 
       const data = await response.json();
+      console.log("data", data);
       setItineraryData(data); 
       setLocationData({
-        coordinates: data.coordinates,
-        addresses: data.addresses,
+        //coordinates: data.coordinates,
+        //addresses: data.addresses,
+        places: data.places
       });
 
     } catch (error) {
