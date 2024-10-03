@@ -39,7 +39,7 @@ const MapComponent = ({ places, loading }) => {
         .setLngLat([place.coordinates.longitude, place.coordinates.latitude])
         .setPopup(
           new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`<h4>Location ${index + 1}</h4><p>${place.address}</p>`)
+            .setHTML(`<h4>Location ${index + 1}</h4><h3>${place.name}</h3><p>${place.address}</p>`)
         )
         .addTo(map.current);
   
