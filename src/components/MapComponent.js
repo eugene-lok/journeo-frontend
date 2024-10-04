@@ -53,8 +53,8 @@ const MapComponent = ({ places, mapLoading }) => {
     // Fit the map to the bounds if coordinates exist
     if (places.length > 0) {
       map.current.fitBounds(bounds, {
-        padding: 50, // Optional padding around the markers
-        maxZoom: 15, // Optional maximum zoom level to avoid excessive zooming
+        padding: 50,
+        maxZoom: 15, 
       });
     }
   }, [mapLoading, places, map.current]);

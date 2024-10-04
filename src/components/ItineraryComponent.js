@@ -55,7 +55,7 @@ const ItineraryComponent = ({itineraryData, itineraryLoading }) => {
   return ( 
     <div>
     {itineraryLoading && (
-         <div className="mt-4 text-center">
+         <div className="mt-2 text-center">
           <p className="text-gray-500">Loading...</p>
           <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
         </div> 
@@ -63,7 +63,7 @@ const ItineraryComponent = ({itineraryData, itineraryLoading }) => {
 
       {/* Render itinerary when form is not loading */}
       {itineraryData && !itineraryLoading && (
-        <div className="mt-6">
+        <div className="mt-2">
           <h2 className="text-xl font-bold">Your Itinerary</h2>
           <div className="mt-4 space-y-4">
             {renderItinerary(itineraryData.itinerary)}
