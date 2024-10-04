@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-const FormComponent = ({ setMapLoading, setLocationData }) => {
+const FormComponent = ({ setMapLoading, setItineraryLoading, setLocationData, setItineraryData }) => {
   const [origin, setOrigin] = useState('');
   const [destinations, setDestinations] = useState('');
   const [budget, setBudget] = useState('');
   const [duration, setDuration] = useState('');
-  const [itineraryData, setItineraryData] = useState(null);  
-  const [itineraryLoading, setItineraryLoading] = useState(false);  // Local loading state for the form spinner
+  //const [itineraryData, setItineraryData] = useState(null);  
+ //const [itineraryLoading, setItineraryLoading] = useState(false);  // Local loading state for the form spinner
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ const FormComponent = ({ setMapLoading, setLocationData }) => {
       setMapLoading(false);  // Stop map spinner
     }
   };
-
+  /*
   const renderItinerary = (itinerary) => {
     // Split itinerary by newline
     const lines = itinerary.split('\n');
@@ -67,7 +67,8 @@ const FormComponent = ({ setMapLoading, setLocationData }) => {
       }
       
       // Parse bold markdown
-      const boldRegex = /\*\*(.*?)\*\*/g;
+      const boldRegex = /\*\*(.*?)\*\*///g;
+      /*
       if (boldRegex.test(line)) {
         const parts = line.split(boldRegex);
         return (
@@ -100,7 +101,7 @@ const FormComponent = ({ setMapLoading, setLocationData }) => {
         </p>
       );
     });
-  };
+  }; */
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -151,24 +152,7 @@ const FormComponent = ({ setMapLoading, setLocationData }) => {
       <button type="submit" className="w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
         Generate Itinerary
       </button>
-
-      {/* Loading Indicator for the form */}
-      {itineraryLoading && (
-        <div className="mt-4 text-center">
-          <p className="text-gray-500">Loading...</p>
-          <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
-        </div>
-      )}
-
-      {/* Render itinerary when form is not loading */}
-      {itineraryData && !itineraryLoading && (
-        <div className="mt-6">
-          <h2 className="text-xl font-bold">Your Itinerary</h2>
-          <div className="mt-4 space-y-4">
-            {renderItinerary(itineraryData.itinerary)}
-          </div>
-        </div>
-      )}
+      
     </form>
   );
 };
