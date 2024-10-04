@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
-const MapComponent = ({ places, loading }) => {
+const MapComponent = ({ places, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]); // Store markers to remove them later
@@ -25,7 +25,7 @@ const MapComponent = ({ places, loading }) => {
 
   // Add or update markers when coordinates change
   useEffect(() => {
-    if (loading || !places.length) return; // Do nothing if loading or no places
+    if (mapLoading || !places.length) return; // Do nothing if loading or no places
   
     // Remove old markers
     markersRef.current.forEach((marker) => marker.remove());
@@ -53,11 +53,11 @@ const MapComponent = ({ places, loading }) => {
     // Fit the map to the bounds if coordinates exist
     if (places.length > 0) {
       map.current.fitBounds(bounds, {
-        padding: 50, // Optional padding around the markers
-        maxZoom: 15, // Optional maximum zoom level to avoid excessive zooming
+        padding: 50,
+        maxZoom: 15, 
       });
     }
-  }, [loading, places, map.current]);
+  }, [mapLoading, places, map.current]);
   
 
   return (
@@ -66,7 +66,7 @@ const MapComponent = ({ places, loading }) => {
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
       {/* Spinner overlay */}
-      {loading && (
+      {mapLoading && (
         <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-70 z-10">
           <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full"></div>
         </div>
