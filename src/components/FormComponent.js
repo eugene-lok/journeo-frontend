@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 
-const FormComponent = ({ setLoading, setLocationData }) => {
+const FormComponent = ({ setMapLoading, setLocationData }) => {
   const [origin, setOrigin] = useState('');
   const [destinations, setDestinations] = useState('');
   const [budget, setBudget] = useState('');
   const [duration, setDuration] = useState('');
   const [itineraryData, setItineraryData] = useState(null);  
-  const [formLoading, setFormLoading] = useState(false);  // Local loading state for the form spinner
+  const [itineraryLoading, setItineraryLoading] = useState(false);  // Local loading state for the form spinner
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormLoading(true);  // Start form spinner
-    setLoading(true);  // Start map spinner
+    setItineraryLoading(true);  // Start form spinner
+    setMapLoading(true);  // Start map spinner
 
     const destinationsList = destinations.split(',').map(dest => dest.trim());
 
@@ -47,8 +47,8 @@ const FormComponent = ({ setLoading, setLocationData }) => {
     } catch (error) {
       console.error("Error generating itinerary:", error);
     } finally {
-      setFormLoading(false);  // Stop form spinner
-      setLoading(false);  // Stop map spinner
+      setItineraryLoading(false);  // Stop form spinner
+      setMapLoading(false);  // Stop map spinner
     }
   };
 
@@ -153,7 +153,7 @@ const FormComponent = ({ setLoading, setLocationData }) => {
       </button>
 
       {/* Loading Indicator for the form */}
-      {formLoading && (
+      {itineraryLoading && (
         <div className="mt-4 text-center">
           <p className="text-gray-500">Loading...</p>
           <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
@@ -161,7 +161,7 @@ const FormComponent = ({ setLoading, setLocationData }) => {
       )}
 
       {/* Render itinerary when form is not loading */}
-      {itineraryData && !formLoading && (
+      {itineraryData && !itineraryLoading && (
         <div className="mt-6">
           <h2 className="text-xl font-bold">Your Itinerary</h2>
           <div className="mt-4 space-y-4">
