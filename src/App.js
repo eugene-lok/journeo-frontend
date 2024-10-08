@@ -14,11 +14,11 @@ function App() {
       <h1 className="text-5xl font-extrabold mb-2 drop-shadow-lg">Journeo</h1>
       <h3 className="text-xl font-medium text-gray-500 mb-8 tracking-wider">Your AI-powered travel assistant</h3>
   
-      <div className="flex w-full h-[85vh] overflow-hidden"> {/* Keep overflow-hidden */}
+      <div className="flex w-full h-[85vh] overflow-hidden"> 
         
         {/* Left column with vertically stacked white boxes */}
         <div className="w-1/3 flex flex-col space-y-4 p-6 ml-5">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex-grow"> {/* Form box without overflow */}
+          <div className="bg-white p-6 rounded-lg shadow-lg"> 
             <FormComponent 
               setMapLoading={setMapLoading} 
               setItineraryLoading={setItineraryLoading} 
@@ -27,7 +27,7 @@ function App() {
             />
           </div>
   
-          <div className="bg-white p-6 rounded-lg shadow-lg flex-grow overflow-y-auto"> {/* Itinerary box without overflow */}
+          <div className="bg-white p-6 rounded-lg shadow-lg flex-grow overflow-y-auto"> 
             <ItineraryComponent
               itineraryData={itineraryData}
               itineraryLoading={itineraryLoading}
