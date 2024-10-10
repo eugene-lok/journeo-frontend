@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-const ItineraryComponent = ({itineraryData, itineraryLoading }) => {
+const Itinerary = ({itineraryData, itineraryLoading }) => {
 
     const renderItinerary = (itinerary) => {
         // Split itinerary by newline
@@ -42,6 +42,10 @@ const ItineraryComponent = ({itineraryData, itineraryLoading }) => {
               </li>
             );
           }
+
+          if (line.startsWith('- **')) {
+            
+          }
     
           // Parse remaining lines
           return (
@@ -74,4 +78,4 @@ const ItineraryComponent = ({itineraryData, itineraryLoading }) => {
   );
 };
 
-export default ItineraryComponent;
+export default Itinerary;

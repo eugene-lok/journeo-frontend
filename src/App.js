@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
-import MapComponent from './components/MapComponent';
-import FormComponent from './components/FormComponent';
-import ItineraryComponent from './components/ItineraryComponent';
+import Map from './components/Map';
+import Form from './components/Form';
+import Itinerary from './components/Itinerary';
+import Navbar from './components/Navbar';
 
 function App() {
   const [itineraryData, setItineraryData] = useState(null);  
-  const [locationData, setLocationData] = useState(null);  // Manage location data in App\
+  const [locationData, setLocationData] = useState(null);  
   const [mapLoading, setMapLoading] = useState(false);  
   const [itineraryLoading, setItineraryLoading] = useState(false);  
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100">
-      <h1 className="text-5xl font-extrabold mb-2 drop-shadow-lg">Journeo</h1>
-      <h3 className="text-xl font-medium text-gray-500 mb-8 tracking-wider">Your AI-powered travel assistant</h3>
-  
-      <div className="flex w-full h-[85vh] overflow-hidden"> 
+    <div className="min-h-screen flex flex-col items-center bg-gray-100 overflow-hidden">
+      <Navbar />
+      <div className="flex w-full h-[90vh] overflow-hidden"> 
         
-        {/* Left column with vertically stacked white boxes */}
-        <div className="w-1/3 flex flex-col space-y-4 p-6 ml-5">
-          <div className="bg-white p-6 rounded-lg shadow-lg"> 
-            <FormComponent 
+        <div className="w-1/3 flex flex-col space-y-4 p-6 ml-5 h-full">
+          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
+            <Form
               setMapLoading={setMapLoading} 
               setItineraryLoading={setItineraryLoading} 
               setLocationData={setLocationData} 
@@ -27,17 +25,16 @@ function App() {
             />
           </div>
   
-          <div className="bg-white p-6 rounded-lg shadow-lg flex-grow overflow-y-auto"> 
-            <ItineraryComponent
+          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
+            <Itinerary
               itineraryData={itineraryData}
               itineraryLoading={itineraryLoading}
             />
           </div>
         </div>
   
-        {/* Right column remains the same */}
         <div className="w-2/3 h-full p-6">
-          <MapComponent 
+          <Map 
             places={locationData ? locationData.places : []} 
             mapLoading={mapLoading} 
           />
@@ -45,8 +42,6 @@ function App() {
       </div>
     </div>
   );
-  
-  
 }
 
 export default App;
