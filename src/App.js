@@ -3,6 +3,7 @@ import Map from './components/Map';
 import Form from './components/Form';
 import Itinerary from './components/Itinerary';
 import Navbar from './components/Navbar';
+import Chat from './components/Chat';
 
 function App() {
   const [itineraryData, setItineraryData] = useState(null);  
@@ -29,6 +30,11 @@ function App() {
             <Itinerary
               itineraryData={itineraryData}
               itineraryLoading={itineraryLoading}
+            />
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
+            <Chat
             />
           </div>
         </div>
