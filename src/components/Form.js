@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const FormComponent = ({ setMapLoading, setItineraryLoading, setLocationData, setItineraryData }) => {
+const Form = ({ setMapLoading, setItineraryLoading, setLocationData, setItineraryData }) => {
   const [origin, setOrigin] = useState('');
   const [destinations, setDestinations] = useState('');
   const [budget, setBudget] = useState('');
@@ -102,4 +102,4 @@ const FormComponent = ({ setMapLoading, setItineraryLoading, setLocationData, se
   );
 };
 
-export default FormComponent;
+export default Form;

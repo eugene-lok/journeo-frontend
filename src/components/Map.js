@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
-const MapComponent = ({ places, mapLoading }) => {
+const Map = ({ places, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]); // Store markers to remove them later
@@ -75,4 +75,4 @@ const MapComponent = ({ places, mapLoading }) => {
   );
 };
 
-export default MapComponent;
+export default Map;
