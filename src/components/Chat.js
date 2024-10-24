@@ -47,9 +47,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           // Set data and alternate chat message if itinerary recieved
           else if (data.response.hasOwnProperty('itinerary')) {
             setItineraryData(data.response); 
-            /* setLocationData({
-              places: data.places
-            }); */
+            setLocationData({
+              places: data.response.places
+            }); 
           }
           
         } 

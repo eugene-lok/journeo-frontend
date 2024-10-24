@@ -37,6 +37,8 @@ function App() {
             <Chat
               setMapLoading={setMapLoading} 
               setItineraryLoading={setItineraryLoading}
+              setLocationData={setLocationData} 
+              setItineraryData={setItineraryData}
             />
           </div>
         </div>
