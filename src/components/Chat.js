@@ -38,8 +38,6 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           
           const data = await response.json();
           console.log("data: ", data);
-          console.log("response: ", data.response);
-          console.log("itinerary: ", data.response.itinerary);
           if (typeof data?.response === 'string') {
             const botMessage = { sender: 'bot', text: data.response };
             setMessages((prev) => [...prev, botMessage]);
@@ -50,6 +48,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
             setLocationData({
               places: data.response.places
             }); 
+            
+            const completionMessage = { sender: 'bot', text: 'Okay! Here is a sample itinerary.' };
+            setMessages((prev) => [...prev, completionMessage]);
           }
           
         } 
