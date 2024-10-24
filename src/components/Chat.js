@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = () => {
+const Chat = ({setMapLoading, setItineraryLoading}) => {
     const [messages, setMessages] = useState([]); 
     const [input, setInput] = useState(''); 
     const [isLoading, setIsLoading] = useState(false); 
@@ -22,6 +22,8 @@ const Chat = () => {
         setInput('');
       
         setIsLoading(true);
+        setItineraryLoading(true);  // Start itinerary spinner
+        setMapLoading(true);  // Start map spinner
       
         try {
           const response = await fetch('http://127.0.0.1:8000/api/chat/', {
@@ -35,6 +37,7 @@ const Chat = () => {
           }
       
           const data = await response.json();
+          console.log(data);
           const botMessage = { sender: 'bot', text: data.response };
           setMessages((prev) => [...prev, botMessage]);
         } catch (error) {
@@ -43,6 +46,8 @@ const Chat = () => {
           setMessages((prev) => [...prev, errorMessage]);
         } finally {
           setIsLoading(false);
+          setItineraryLoading(false);  // Start itinerary spinner
+          setMapLoading(false);  // Start map spinner
         }
     };
   

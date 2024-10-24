@@ -17,14 +17,14 @@ function App() {
       <div className="flex w-full h-[90vh] overflow-hidden"> 
         
         <div className="w-1/3 flex flex-col space-y-4 p-6 ml-5 h-full">
-          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
+          {/* <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
             <Form
               setMapLoading={setMapLoading} 
               setItineraryLoading={setItineraryLoading} 
               setLocationData={setLocationData} 
               setItineraryData={setItineraryData}
             />
-          </div>
+          </div> */}
   
           <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
             <Itinerary
@@ -35,6 +35,8 @@ function App() {
 
           <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
             <Chat
+              setMapLoading={setMapLoading} 
+              setItineraryLoading={setItineraryLoading}
             />
           </div>
         </div>
