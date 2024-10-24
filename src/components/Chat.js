@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = ({setMapLoading, setItineraryLoading}) => {
+const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData}) => {
     const [messages, setMessages] = useState([]); 
     const [input, setInput] = useState(''); 
     const [isLoading, setIsLoading] = useState(false); 
@@ -35,16 +35,30 @@ const Chat = ({setMapLoading, setItineraryLoading}) => {
           if (!response.ok) {
             throw new Error('Failed to fetch response');
           }
-      
+          
           const data = await response.json();
-          console.log(data);
-          const botMessage = { sender: 'bot', text: data.response };
-          setMessages((prev) => [...prev, botMessage]);
-        } catch (error) {
-          console.error('Error:', error);
+          console.log("data: ", data);
+          console.log("response: ", data.response);
+          console.log("itinerary: ", data.response.itinerary);
+          if (typeof data?.response === 'string') {
+            const botMessage = { sender: 'bot', text: data.response };
+            setMessages((prev) => [...prev, botMessage]);
+          }
+          // Set data and alternate chat message if itinerary recieved
+          else if (data.response.hasOwnProperty('itinerary')) {
+            setItineraryData(data.response); 
+            /* setLocationData({
+              places: data.places
+            }); */
+          }
+          
+        } 
+        catch (error) {
+          console.log('Error:', error);
           const errorMessage = { sender: 'bot', text: 'Something went wrong. Please try again.' };
           setMessages((prev) => [...prev, errorMessage]);
-        } finally {
+        } 
+        finally {
           setIsLoading(false);
           setItineraryLoading(false);  // Start itinerary spinner
           setMapLoading(false);  // Start map spinner
@@ -64,6 +78,10 @@ const Chat = ({setMapLoading, setItineraryLoading}) => {
           {msg.text}
         </div>
       ));
+
+    // Handle message when itinerary object is received
+
+
   
     return (
       <div className="flex flex-col h-screen p-6 bg-gray-100">
