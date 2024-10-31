@@ -25,15 +25,8 @@ function App() {
               setItineraryData={setItineraryData}
             />
           </div> */}
-  
-          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
-            <Itinerary
-              itineraryData={itineraryData}
-              itineraryLoading={itineraryLoading}
-            />
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
+          <div className="bg-white p-6 rounded-lg shadow-lg h-full overflow-auto"> 
             <Chat
               setMapLoading={setMapLoading} 
               setItineraryLoading={setItineraryLoading}
@@ -44,10 +37,18 @@ function App() {
         </div>
   
         <div className="w-2/3 h-full p-6">
+          <div className="h-1/2 bg-white p-4">
+            <Itinerary
+              itineraryData={itineraryData}
+              itineraryLoading={itineraryLoading}
+            />
+          </div>
+          <div className="h-1/2 p-4">
           <Map 
             places={locationData ? locationData.places : []} 
             mapLoading={mapLoading} 
           />
+          </div>
         </div>
       </div>
     </div>
