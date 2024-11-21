@@ -14,7 +14,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
     useEffect(() => {
       scrollToBottom();
     }, [messages]);
-  
+    
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+
     // Handle user input submission
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -28,7 +30,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         setMapLoading(true);  // Start map spinner
       
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/chat/', {
+          const response = await fetch(`${API_BASE_URL}/api/chat/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ input }),
