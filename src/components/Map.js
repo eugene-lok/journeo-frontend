@@ -61,7 +61,7 @@ const Map = ({ places, mapLoading }) => {
   
 
   return (
-    <div className="relative" style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%' }}>
       {/* Map container */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
