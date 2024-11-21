@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData}) => {
-    const [messages, setMessages] = useState([]); 
+    const [messages, setMessages] = useState([
+      {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
+    ]); 
     const [input, setInput] = useState(''); 
     const [isLoading, setIsLoading] = useState(false); 
     const chatEndRef = useRef(null); 
