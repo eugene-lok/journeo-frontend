@@ -5,6 +5,69 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
+// Moves a point a set distance using spherical trig 
+const movePoint = (lat, lon, distance, bearing) => {
+  // Earth's radius (m)
+  const R = 6378137; 
+  // Angular distance 
+  const delta = distance / R; 
+  // Bearing in radians
+  const theta = (bearing * Math.PI) / 180; 
+
+  // Convert lat, lon to radians
+  const lat1 = (lat * Math.PI) / 180;
+  const lon1 = (lon * Math.PI) / 180; 
+
+  // Calculate shift in lat and lon 
+  const sinLat1 = Math.sin(lat1);
+  const cosLat1 = Math.cos(lat1);
+  const sinDelta = Math.sin(delta);
+  const cosDelta = Math.cos(delta);
+
+  const sinLat2 = sinLat1 * cosDelta + cosLat1 * sinDelta * Math.cos(theta);
+  const lat2 = Math.asin(sinLat2);
+
+  const y = Math.sin(theta) * sinDelta * cosLat1;
+  const x = cosDelta - sinLat1 * sinLat2;
+  const lon2 = lon1 + Math.atan2(y, x);
+
+  // Convert back to degrees
+  const newLat = (lat2 * 180) / Math.PI;
+  const newLon = (lon2 * 180) / Math.PI;
+
+  return { lat: newLat, lon: newLon };
+};
+
+// Adjusts duplicates coordiantes by moving them 20m, scaling with latitude
+const adjustDuplicates = (places) => {
+  const coordMap = {};
+  for (let i = 0; i < places.length; i++) {
+    const place = places[i];
+    const lat = place.coordinates.latitude;
+    const lon = place.coordinates.longitude;
+    const key = `${lat.toFixed(6)},${lon.toFixed(6)}`; 
+
+    if (coordMap[key]) {
+      const count = coordMap[key];
+
+      // Generate random bearing 
+      const bearing = Math.random() * 360;
+
+      // Increase distance for each duplicate 
+      const distance = 20 + (count - 1) * 0.5; 
+
+      // Update place coordinates
+      const newCoord = movePoint(lat, lon, distance, bearing);      
+      place.coordinates.latitude = newCoord.lat;
+      place.coordinates.longitude = newCoord.lon;
+
+      coordMap[key] += 1;
+    } else {
+      coordMap[key] = 1;
+    }
+  }
+};
+
 const Map = ({ places, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -20,14 +83,14 @@ const Map = ({ places, mapLoading }) => {
       center: initialCoordinates,
       zoom: 10,
     });
-
   }, []);
-
-  
 
   // Add or update markers, clustering, and routes
   useEffect(() => {
     if (mapLoading || !places.length) return;
+
+    // 3. Adjust duplicates before processing
+    adjustDuplicates(places);
 
     // Clear existing data layers to prevent duplicates
     if (map.current.getLayer('clusters')) {
@@ -109,7 +172,7 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // Add route layer 
+    // Add route layer
     if (places.length > 1) {
       const routeCoordinates = places.map(
         (place) => [place.coordinates.longitude, place.coordinates.latitude]
@@ -137,7 +200,7 @@ const Map = ({ places, mapLoading }) => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#007AFF', 
+          'line-color': '#007AFF',
           'line-width': 4,
         },
       });
@@ -155,7 +218,6 @@ const Map = ({ places, mapLoading }) => {
         )
         .addTo(map.current);
     });
-    
 
     // Zoom into clusters on click
     map.current.on('click', 'clusters', (e) => {
@@ -163,14 +225,16 @@ const Map = ({ places, mapLoading }) => {
         layers: ['clusters'],
       });
       const clusterId = features[0].properties.cluster_id;
-      map.current.getSource('places').getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err) return;
+      map.current
+        .getSource('places')
+        .getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
 
-        map.current.easeTo({
-          center: features[0].geometry.coordinates,
-          zoom: zoom,
+          map.current.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom: zoom,
+          });
         });
-      });
     });
 
     // Change cursor to pointer when hovering over clusters and points

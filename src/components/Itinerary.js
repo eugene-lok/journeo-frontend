@@ -16,6 +16,8 @@ const Itinerary = ({itineraryData, itineraryLoading }) => {
             return <h1 key={index} className="text-2xl font-bold mt-8">{line.replace(/#/g, '').trim()}</h1>;
           }
           
+          
+
           // Parse bold markdown
           const boldRegex = /\*\*(.*?)\*\*/g;
           if (boldRegex.test(line)) {
@@ -28,12 +30,12 @@ const Itinerary = ({itineraryData, itineraryLoading }) => {
               </p>
             );
           }
-    
+          
           // Parse horizontal rule
           if (line.startsWith('---')) {
             return <hr key={index} className="border-t border-gray-300 my-4" />;
-          }
-    
+          }        
+
           // Parse bullet points
           if (line.startsWith('-')) {
             return (
@@ -41,10 +43,6 @@ const Itinerary = ({itineraryData, itineraryLoading }) => {
                 {line.replace(/^- /, '').trim()}
               </li>
             );
-          }
-
-          if (line.startsWith('- **')) {
-            
           }
     
           // Parse remaining lines

@@ -38,10 +38,10 @@ function App() {
             <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto">
               <div className="p-4">
                 <button
-                  className="mb-4 text-md text-blue-500"
+                  className="mb-4 text-blue-500 "
                   onClick={() => setShowItinerary(false)}
                 >
-                  Close
+                  Close Itinerary
                 </button>
                 <Itinerary
                   itineraryData={itineraryData}
@@ -53,7 +53,7 @@ function App() {
 
           {!showItinerary && (
             <button
-              className="absolute top-4 left-4 bg-emerald-500 text-white py-2 px-4 rounded-lg shadow-md z-30"
+              className="absolute top-4 left-4 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg shadow-md z-30"
               onClick={() => setShowItinerary(true)}
             >
               Show Itinerary
