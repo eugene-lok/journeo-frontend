@@ -51,7 +51,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
               places: data.response.places
             }); 
             
-            const completionMessage = { sender: 'bot', text: 'Okay! Here is a sample itinerary.' };
+            const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
             setMessages((prev) => [...prev, completionMessage]);
           }
           
