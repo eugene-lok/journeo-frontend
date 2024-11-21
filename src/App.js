@@ -1,54 +1,64 @@
 import React, { useState } from 'react';
 import Map from './components/Map';
-import Form from './components/Form';
-import Itinerary from './components/Itinerary';
-import Navbar from './components/Navbar';
 import Chat from './components/Chat';
+import Navbar from './components/Navbar';
+import Itinerary from './components/Itinerary';
 
 function App() {
-  const [itineraryData, setItineraryData] = useState(null);  
-  const [locationData, setLocationData] = useState(null);  
-  const [mapLoading, setMapLoading] = useState(false);  
-  const [itineraryLoading, setItineraryLoading] = useState(false);  
+  const [itineraryData, setItineraryData] = useState(null);
+  const [locationData, setLocationData] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [showItinerary, setShowItinerary] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-100">
       <Navbar />
-      <div className="flex w-full h-[90vh] overflow-hidden"> 
-        
-        <div className="w-1/3 flex flex-col space-y-4 p-6 ml-5 h-full">
-          {/* <div className="bg-white p-6 rounded-lg shadow-lg h-1/2 overflow-auto"> 
-            <Form
-              setMapLoading={setMapLoading} 
-              setItineraryLoading={setItineraryLoading} 
-              setLocationData={setLocationData} 
-              setItineraryData={setItineraryData}
-            />
-          </div> */}
-
-          <div className="bg-white p-6 rounded-lg shadow-lg h-full overflow-auto"> 
+      <div className="flex-grow relative flex w-full overflow-hidden">
+        {/* Chat Component */}
+        <div className="w-1/3 h-full bg-gray-100 z-10">
+          <div className="h-full bg-white shadow-lg overflow-y-auto">
             <Chat
-              setMapLoading={setMapLoading} 
+              setMapLoading={setMapLoading}
               setItineraryLoading={setItineraryLoading}
-              setLocationData={setLocationData} 
+              setLocationData={setLocationData}
               setItineraryData={setItineraryData}
             />
           </div>
         </div>
-  
-        <div className="w-2/3 h-full p-6">
-          <div className="h-1/2 bg-white p-4">
-            <Itinerary
-              itineraryData={itineraryData}
-              itineraryLoading={itineraryLoading}
-            />
-          </div>
-          <div className="h-1/2 p-4">
-          <Map 
-            places={locationData ? locationData.places : []} 
-            mapLoading={mapLoading} 
+
+        {/* Map Component */}
+        <div className="flex-1 relative h-full overflow-hidden">
+          <Map
+            places={locationData ? locationData.places : []}
+            mapLoading={mapLoading}
           />
-          </div>
+
+          {showItinerary && (
+            <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto">
+              <div className="p-4">
+                <button
+                  className="mb-4 text-blue-500 "
+                  onClick={() => setShowItinerary(false)}
+                >
+                  Close Itinerary
+                </button>
+                <Itinerary
+                  itineraryData={itineraryData}
+                  itineraryLoading={itineraryLoading}
+                />
+              </div>
+            </div>
+          )}
+
+          {!showItinerary && (
+            <button
+              className="absolute top-4 left-4 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg shadow-md z-30"
+              onClick={() => setShowItinerary(true)}
+            >
+              Show Itinerary
+            </button>
+          )}
         </div>
       </div>
     </div>

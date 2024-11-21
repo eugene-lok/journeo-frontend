@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData}) => {
-    const [messages, setMessages] = useState([]); 
+    const [messages, setMessages] = useState([
+      {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
+    ]); 
     const [input, setInput] = useState(''); 
     const [isLoading, setIsLoading] = useState(false); 
     const chatEndRef = useRef(null); 
@@ -49,7 +51,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
               places: data.response.places
             }); 
             
-            const completionMessage = { sender: 'bot', text: 'Okay! Here is a sample itinerary.' };
+            const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
             setMessages((prev) => [...prev, completionMessage]);
           }
           
@@ -65,22 +67,61 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           setMapLoading(false);  // Start map spinner
         }
     };
-  
+    
     // Render chat messages
-    const renderMessages = () =>
+    const renderMessages = () => 
       messages.map((msg, index) => (
-        // Change position and color of message based on sender
         <div
           key={index}
           className={`p-2 rounded-lg my-2 ${
-            msg.sender === 'user' ? 'bg-green-500 text-white self-end' : 'bg-gray-300 text-black self-start'
+            msg.sender === 'user' ? 'bg-emerald-500 text-white self-end' : 'bg-zinc-800 text-black self-start'
           }`}
         >
-          {msg.text}
+          {parseMarkdown(msg.text)}
         </div>
       ));
 
-    // Handle message when itinerary object is received
+    // Helper function to parse markdown in messages
+    const parseMarkdown = (text) => {
+  // Split the text by newline
+  const lines = text.split('\n');
+  
+  return lines.map((line, index) => {
+    // Parse bold markdown
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    if (boldRegex.test(line)) {
+      const parts = line.split(boldRegex);
+      return (
+        <p key={index} className="text-white">
+          {parts.map((part, i) => 
+            i % 2 === 1 ? <span key={i} className="font-bold">{part}</span> : part
+          )}
+        </p>
+      );
+    }
+
+    // Parse horizontal rule
+    if (line.startsWith('---')) {
+      return <hr key={index} className="border-t border-gray-300 my-4" />;
+    }
+
+    // Parse bullet points
+    if (line.startsWith('-')) {
+      return (
+        <li key={index} className="ml-4 mb-2 text-white list-disc">
+          {line.replace(/^- /, '').trim()}
+        </li>
+      );
+    }
+
+    // Parse remaining lines
+    return (
+      <p key={index} className=" text-white self-end">
+        {line.trim()}
+      </p>
+    );
+  });
+};
 
 
   
@@ -102,7 +143,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           />
           <button
             onClick={handleSend}
-            className="p-2 bg-green-500 text-white rounded-r-lg hover:bg-green-700"
+            className="p-2 bg-emerald-500 text-white rounded-r-lg hover:bg-emerald-700"
             disabled={isLoading}
           >
             {isLoading ? 'Sending' : 'Send'}
