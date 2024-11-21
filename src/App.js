@@ -9,15 +9,15 @@ function App() {
   const [locationData, setLocationData] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
   const [itineraryLoading, setItineraryLoading] = useState(false);
-  const [showItinerary, setShowItinerary] = useState(false); 
+  const [showItinerary, setShowItinerary] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-100">
       <Navbar />
-      <div className="flex w-full h-[93vh] relative">
-
-        <div className="w-1/3 flex flex-col space-y-4 p-6 bg-gray-100 z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg h-full overflow-auto">
+      <div className="flex-grow relative flex w-full overflow-hidden">
+        {/* Chat Component */}
+        <div className="w-1/3 h-full bg-gray-100 z-10">
+          <div className="h-full bg-white shadow-lg overflow-y-auto">
             <Chat
               setMapLoading={setMapLoading}
               setItineraryLoading={setItineraryLoading}
@@ -27,7 +27,8 @@ function App() {
           </div>
         </div>
 
-        <div className="flex-1 relative h-full">
+        {/* Map Component */}
+        <div className="flex-1 relative h-full overflow-hidden">
           <Map
             places={locationData ? locationData.places : []}
             mapLoading={mapLoading}
@@ -52,7 +53,7 @@ function App() {
 
           {!showItinerary && (
             <button
-              className="absolute top-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-md z-30"
+              className="absolute top-4 left-4 bg-emerald-500 text-white py-2 px-4 rounded-lg shadow-md z-30"
               onClick={() => setShowItinerary(true)}
             >
               Show Itinerary

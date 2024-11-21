@@ -75,7 +75,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         <div
           key={index}
           className={`p-2 rounded-lg my-2 ${
-            msg.sender === 'user' ? 'bg-green-500 text-white self-end' : 'bg-gray-300 text-black self-start'
+            msg.sender === 'user' ? 'bg-emerald-500 text-white self-end' : 'bg-gray-300 text-black self-start'
           }`}
         >
           {msg.text}
@@ -104,7 +104,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           />
           <button
             onClick={handleSend}
-            className="p-2 bg-green-500 text-white rounded-r-lg hover:bg-green-700"
+            className="p-2 bg-emerald-500 text-white rounded-r-lg hover:bg-emerald-700"
             disabled={isLoading}
           >
             {isLoading ? 'Sending' : 'Send'}

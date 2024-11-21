@@ -61,7 +61,7 @@ const Itinerary = ({itineraryData, itineraryLoading }) => {
     {itineraryLoading && (
          <div className="mt-2 text-center">
           <p className="text-gray-500">Loading...</p>
-          <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
+          <div className="animate-spin h-20 w-20 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto"></div>
         </div> 
       )}
 

@@ -20,7 +20,10 @@ const Map = ({ places, mapLoading }) => {
       center: initialCoordinates,
       zoom: 10,
     });
+
   }, []);
+
+  
 
   // Add or update markers, clustering, and routes
   useEffect(() => {
@@ -206,7 +209,7 @@ const Map = ({ places, mapLoading }) => {
       {/* Spinner overlay */}
       {mapLoading && (
         <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-70 z-10">
-          <div className="animate-spin h-20 w-20 border-4 border-green-500 border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-20 w-20 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
         </div>
       )}
     </div>
