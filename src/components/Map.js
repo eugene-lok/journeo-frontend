@@ -22,7 +22,7 @@ const Map = ({ places, mapLoading }) => {
     });
   }, []);
 
-  // Add or update markers with clustering and custom markers
+  // Add or update markers, clustering, and routes
   useEffect(() => {
     if (mapLoading || !places.length) return;
 
@@ -32,6 +32,10 @@ const Map = ({ places, mapLoading }) => {
       map.current.removeLayer('cluster-count');
       map.current.removeLayer('unclustered-point');
       map.current.removeSource('places');
+    }
+    if (map.current.getLayer('route')) {
+      map.current.removeLayer('route');
+      map.current.removeSource('route');
     }
 
     // Convert places to GeoJSON
@@ -56,8 +60,8 @@ const Map = ({ places, mapLoading }) => {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 12, 
-      clusterRadius: 30, 
+      clusterMaxZoom: 12,
+      clusterRadius: 30,
     });
 
     // Add cluster layer
@@ -67,7 +71,7 @@ const Map = ({ places, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#ffea63', 
+        'circle-color': '#99d8c9',
         'circle-radius': 20,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#fff',
@@ -88,19 +92,53 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // Add unclustered point layer with custom circle markers
+    // Add unclustered point layer with custom markers
     map.current.addLayer({
       id: 'unclustered-point',
       type: 'circle',
       source: 'places',
       filter: ['!', ['has', 'point_count']],
       paint: {
-        'circle-color': '#ffea63', 
-        'circle-radius': 8, 
+        'circle-color': '#99d8c9',
+        'circle-radius': 8,
         'circle-stroke-width': 1,
-        'circle-stroke-color': '#000', 
+        'circle-stroke-color': '#000',
       },
     });
+
+    // Add route layer 
+    if (places.length > 1) {
+      const routeCoordinates = places.map(
+        (place) => [place.coordinates.longitude, place.coordinates.latitude]
+      );
+
+      const routeGeoJSON = {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: routeCoordinates,
+        },
+      };
+
+      map.current.addSource('route', {
+        type: 'geojson',
+        data: routeGeoJSON,
+      });
+
+      map.current.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#007AFF', 
+          'line-width': 4,
+        },
+      });
+    }
 
     // Add popup for unclustered points
     map.current.on('click', 'unclustered-point', (e) => {
@@ -114,6 +152,7 @@ const Map = ({ places, mapLoading }) => {
         )
         .addTo(map.current);
     });
+    
 
     // Zoom into clusters on click
     map.current.on('click', 'clusters', (e) => {
@@ -131,14 +170,13 @@ const Map = ({ places, mapLoading }) => {
       });
     });
 
-    // Change cursor to pointer when hovering clusters and points
+    // Change cursor to pointer when hovering over clusters and points
     map.current.on('mouseenter', 'clusters', () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
     map.current.on('mouseleave', 'clusters', () => {
       map.current.getCanvas().style.cursor = '';
     });
-
     map.current.on('mouseenter', 'unclustered-point', () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
