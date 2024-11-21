@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl'; 
-import 'mapbox-gl/dist/mapbox-gl.css'; 
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
@@ -8,57 +8,150 @@ mapboxgl.accessToken = mapboxAccessToken;
 const Map = ({ places, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const markersRef = useRef([]); // Store markers to remove them later
 
   // Initialize the map only once
   useEffect(() => {
-    if (map.current) return; // Only initialize once
+    if (map.current) return;
     const initialCoordinates = [-114, 51]; // Default coordinates (e.g., Calgary)
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/navigation-day-v1', 
-      center: initialCoordinates, 
+      style: 'mapbox://styles/mapbox/outdoors-v12',
+      center: initialCoordinates,
       zoom: 10,
     });
   }, []);
 
-  // Add or update markers when coordinates change
+  // Add or update markers with clustering and custom markers
   useEffect(() => {
-    if (mapLoading || !places.length) return; // Do nothing if loading or no places
-  
-    // Remove old markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-  
-    // Add new markers and calculate bounds
-    const bounds = new mapboxgl.LngLatBounds(); // Initialize bounds
-  
-    places.forEach((place, index) => {
-      const marker = new mapboxgl.Marker()
-        .setLngLat([place.coordinates.longitude, place.coordinates.latitude])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`<h4>Location ${index + 1}</h4><h3>${place.name}</h3><p>${place.address}</p>`)
+    if (mapLoading || !places.length) return;
+
+    // Clear existing data layers to prevent duplicates
+    if (map.current.getLayer('clusters')) {
+      map.current.removeLayer('clusters');
+      map.current.removeLayer('cluster-count');
+      map.current.removeLayer('unclustered-point');
+      map.current.removeSource('places');
+    }
+
+    // Convert places to GeoJSON
+    const geojson = {
+      type: 'FeatureCollection',
+      features: places.map((place, index) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [place.coordinates.longitude, place.coordinates.latitude],
+        },
+        properties: {
+          name: place.name,
+          address: place.address,
+          index: index + 1,
+        },
+      })),
+    };
+
+    // Add GeoJSON source with clustering
+    map.current.addSource('places', {
+      type: 'geojson',
+      data: geojson,
+      cluster: true,
+      clusterMaxZoom: 12, 
+      clusterRadius: 30, 
+    });
+
+    // Add cluster layer
+    map.current.addLayer({
+      id: 'clusters',
+      type: 'circle',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#ffea63', 
+        'circle-radius': 20,
+        'circle-stroke-width': 1,
+        'circle-stroke-color': '#fff',
+      },
+    });
+
+    // Add cluster count labels
+    map.current.addLayer({
+      id: 'cluster-count',
+      type: 'symbol',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 14,
+        'text-color': '#ffffff',
+      },
+    });
+
+    // Add unclustered point layer with custom circle markers
+    map.current.addLayer({
+      id: 'unclustered-point',
+      type: 'circle',
+      source: 'places',
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': '#ffea63', 
+        'circle-radius': 8, 
+        'circle-stroke-width': 1,
+        'circle-stroke-color': '#000', 
+      },
+    });
+
+    // Add popup for unclustered points
+    map.current.on('click', 'unclustered-point', (e) => {
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      const { name, address, index } = e.features[0].properties;
+
+      new mapboxgl.Popup({ offset: 25 })
+        .setLngLat(coordinates)
+        .setHTML(
+          `<h4>Location ${index}</h4><h3>${name}</h3><p>${address}</p>`
         )
         .addTo(map.current);
-  
-      // Extend bounds to include each marker's position
-      bounds.extend([place.coordinates.longitude, place.coordinates.latitude]);
-  
-      // Save the marker so it can be removed later
-      markersRef.current.push(marker);
     });
-  
-    // Fit the map to the bounds if coordinates exist
+
+    // Zoom into clusters on click
+    map.current.on('click', 'clusters', (e) => {
+      const features = map.current.queryRenderedFeatures(e.point, {
+        layers: ['clusters'],
+      });
+      const clusterId = features[0].properties.cluster_id;
+      map.current.getSource('places').getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+
+        map.current.easeTo({
+          center: features[0].geometry.coordinates,
+          zoom: zoom,
+        });
+      });
+    });
+
+    // Change cursor to pointer when hovering over clusters
+    map.current.on('mouseenter', 'clusters', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'clusters', () => {
+      map.current.getCanvas().style.cursor = '';
+    });
+
+    // Fit map to all points
+    const bounds = new mapboxgl.LngLatBounds();
+    places.forEach((place) => {
+      bounds.extend([place.coordinates.longitude, place.coordinates.latitude]);
+    });
+
     if (places.length > 0) {
       map.current.fitBounds(bounds, {
         padding: 50,
-        maxZoom: 15, 
+        maxZoom: 12,
       });
     }
-  }, [mapLoading, places, map.current]);
-  
+  }, [mapLoading, places]);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
