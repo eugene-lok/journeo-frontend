@@ -131,11 +131,18 @@ const Map = ({ places, mapLoading }) => {
       });
     });
 
-    // Change cursor to pointer when hovering over clusters
+    // Change cursor to pointer when hovering clusters and points
     map.current.on('mouseenter', 'clusters', () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
     map.current.on('mouseleave', 'clusters', () => {
+      map.current.getCanvas().style.cursor = '';
+    });
+
+    map.current.on('mouseenter', 'unclustered-point', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'unclustered-point', () => {
       map.current.getCanvas().style.cursor = '';
     });
 
