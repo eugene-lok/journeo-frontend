@@ -66,7 +66,6 @@ const Itinerary = ({itineraryData, itineraryLoading }) => {
       {/* Render itinerary when form is not loading */}
       {itineraryData && !itineraryLoading && (
         <div className="mt-2">
-          <h2 className="text-xl font-bold">Your Itinerary</h2>
           <div className="mt-4 space-y-4">
             {renderItinerary(itineraryData.itinerary)}
           </div>
