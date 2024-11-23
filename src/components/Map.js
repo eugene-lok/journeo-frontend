@@ -206,17 +206,36 @@ const Map = ({ places, mapLoading }) => {
       });
     }
 
-    // Add popup for unclustered points
-    map.current.on('click', 'unclustered-point', (e) => {
+    const popup = new mapboxgl.Popup({
+      closeButton: false,       
+      closeOnClick: false    
+    });
+
+    // Show popup on hover 
+    map.current.on('mouseenter', 'unclustered-point', (e) => {
+      // Change cursor style to pointer 
+      map.current.getCanvas().style.cursor = 'pointer';
+
+      // Get coordinates and details of hovered location
       const coordinates = e.features[0].geometry.coordinates.slice();
       const { name, address, index } = e.features[0].properties;
 
-      new mapboxgl.Popup({ offset: 25 })
+      const htmlContent = `
+        <h4>Location ${index}</h4>
+        <h3>${name}</h3>
+        <p>${address}</p>
+      `;
+
+      popup
         .setLngLat(coordinates)
-        .setHTML(
-          `<h4>Location ${index}</h4><h3>${name}</h3><p>${address}</p>`
-        )
+        .setHTML(htmlContent)
         .addTo(map.current);
+    });
+
+    // Reset cursor and remove popup when unhovering
+    map.current.on('mouseleave', 'unclustered-point', () => {
+      map.current.getCanvas().style.cursor = '';
+      popup.remove();
     });
 
     // Zoom into clusters on click
