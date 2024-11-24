@@ -2,6 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+// Icons
+import airportIcon from './../icons/airplane.png'; 
+import markerIcon from './../icons/marker.png';   
+
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
@@ -90,6 +94,25 @@ const Map = ({ places, mapLoading }) => {
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl());
+
+    // Add the custom icons on map load
+    map.current.on('load', () => {
+      // Load airport icon
+      if (!map.current.hasImage('airport-icon')) {
+        map.current.loadImage(airportIcon, (error, image) => {
+          if (error) throw error;
+          map.current.addImage('airport-icon', image);
+        });
+      }
+
+      // Load marker icon
+      if (!map.current.hasImage('marker-icon')) {
+        map.current.loadImage(markerIcon, (error, image) => {
+          if (error) throw error;
+          map.current.addImage('marker-icon', image);
+        });
+      }
+    });
   }, []);
 
   // Add or update markers, clustering, and routes
@@ -124,7 +147,8 @@ const Map = ({ places, mapLoading }) => {
 
     removeLayerAndSource('clusters', 'places');
     removeLayerAndSource('cluster-count', 'places');
-    removeLayerAndSource('unclustered-point', 'places');
+    removeLayerAndSource('unclustered-point-airport', 'places'); 
+    removeLayerAndSource('unclustered-point-marker', 'places');  
     removeLayerAndSource('route', 'route');
 
     // Convert places to GeoJSON
@@ -174,7 +198,7 @@ const Map = ({ places, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#DB4437',
+        'circle-color': '#FF2E39',
         'circle-radius': 20,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#fff',
@@ -197,15 +221,27 @@ const Map = ({ places, mapLoading }) => {
 
     // Add unclustered point layer with custom markers
     map.current.addLayer({
-      id: 'unclustered-point',
-      type: 'circle',
+      id: 'unclustered-point-airport',
+      type: 'symbol',
       source: 'places',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color': '#DB4437',
-        'circle-radius': 12,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#000',
+      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'airport-icon', // Use the image name as a string
+        'icon-size': 0.07, // Adjust size as needed
+        'icon-anchor': 'bottom',
+      },
+    });
+
+    // Add unclusted marker points
+    map.current.addLayer({
+      id: 'unclustered-point-marker',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon', // Use the image name as a string
+        'icon-size': 0.1, // Adjust size as needed
+        'icon-anchor': 'bottom',
       },
     });
 
@@ -265,7 +301,7 @@ const Map = ({ places, mapLoading }) => {
     });
 
     // Show popup on hover 
-    map.current.on('mouseenter', 'unclustered-point', (e) => {
+    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
       // Change cursor style to pointer 
       map.current.getCanvas().style.cursor = 'pointer';
 
@@ -287,7 +323,7 @@ const Map = ({ places, mapLoading }) => {
     });
 
     // Reset cursor and remove popup when unhovering
-    map.current.on('mouseleave', 'unclustered-point', () => {
+    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
       popup.remove();
     });
@@ -317,10 +353,10 @@ const Map = ({ places, mapLoading }) => {
     map.current.on('mouseleave', 'clusters', () => {
       map.current.getCanvas().style.cursor = '';
     });
-    map.current.on('mouseenter', 'unclustered-point', () => {
+    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
-    map.current.on('mouseleave', 'unclustered-point', () => {
+    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
     });
 
@@ -340,6 +376,14 @@ const Map = ({ places, mapLoading }) => {
         maxZoom: 12,
       });
     }
+
+    // Cleanup event listeners on unmount or update
+    return () => {
+      map.current.off('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('mouseenter', 'clusters');
+      map.current.off('mouseleave', 'clusters');
+    };
   }, [mapLoading, places]);
 
   return (
