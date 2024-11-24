@@ -102,6 +102,7 @@ const Map = ({ places, mapLoading }) => {
         map.current.loadImage(airportIcon, (error, image) => {
           if (error) throw error;
           map.current.addImage('airport-icon', image);
+          console.log('Airport icon loaded');
         });
       }
 
@@ -110,6 +111,7 @@ const Map = ({ places, mapLoading }) => {
         map.current.loadImage(markerIcon, (error, image) => {
           if (error) throw error;
           map.current.addImage('marker-icon', image);
+          console.log('Marker icon loaded');
         });
       }
     });
@@ -219,37 +221,9 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // Add unclustered point layer with custom markers
-    map.current.addLayer({
-      id: 'unclustered-point-airport',
-      type: 'symbol',
-      source: 'places',
-      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
-      layout: {
-        'icon-image': 'airport-icon', // Use the image name as a string
-        'icon-size': 0.07, // Adjust size as needed
-        'icon-anchor': 'bottom',
-      },
-    });
-
-    // Add unclusted marker points
-    map.current.addLayer({
-      id: 'unclustered-point-marker',
-      type: 'symbol',
-      source: 'places',
-      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
-      layout: {
-        'icon-image': 'marker-icon', // Use the image name as a string
-        'icon-size': 0.1, // Adjust size as needed
-        'icon-anchor': 'bottom',
-      },
-    });
-
-    // Filter places to include only airports
+    // **Add Route Layer Here**
+    // Only add if there are routes to display
     const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
-
-    console.log('Airport Places:', airportPlaces);
-
     if (airportPlaces.length > 1) {
       const routeCoordinates = airportPlaces.map(place => [
         Number(place.coordinates.longitude),
@@ -284,15 +258,39 @@ const Map = ({ places, mapLoading }) => {
         paint: {
           'line-color': '#007AFF',
           'line-width': 4,
-          'line-dasharray': [2, 3]
+          'line-dasharray': [2, 3], // Dotted line
         },
       });
-
-      // Optionally, fit the map to the route
-      const bounds = new mapboxgl.LngLatBounds();
-      routeCoordinates.forEach(coord => bounds.extend(coord));
-      map.current.fitBounds(bounds, { padding: 50 });
     }
+
+    // **Add Route Layer Before Unclustered Markers**
+    // To ensure it appears below the unclustered markers, add it before adding markers
+
+    // Add unclustered airport points
+    map.current.addLayer({
+      id: 'unclustered-point-airport',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'airport-icon', // Use the image name as a string
+        'icon-size': 0.07, // Adjust size as needed
+        'icon-anchor': 'bottom',
+      },
+    });
+
+    // Add unclustered marker points
+    map.current.addLayer({
+      id: 'unclustered-point-marker',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon', // Use the image name as a string
+        'icon-size': 0.1, // Adjust size as needed
+        'icon-anchor': 'bottom',
+      },
+    });
 
     // Create a popup instance
     const popup = new mapboxgl.Popup({
