@@ -38,13 +38,15 @@ const movePoint = (lat, lon, distance, bearing) => {
   return { lat: newLat, lon: newLon };
 };
 
-// Adjusts duplicates coordiantes by moving them 20m, scaling with latitude
+// Adjusts duplicates coordinates by moving them 20m, scaling with latitude
 const adjustDuplicates = (places) => {
   const coordMap = {};
-  for (let i = 0; i < places.length; i++) {
-    const place = places[i];
-    const lat = place.coordinates.latitude;
-    const lon = place.coordinates.longitude;
+  const adjustedPlaces = [...places]; 
+
+  for (let i = 0; i < adjustedPlaces.length; i++) {
+    const place = adjustedPlaces[i];
+    const lat = Number(place.coordinates.latitude);
+    const lon = Number(place.coordinates.longitude);
     const key = `${lat.toFixed(6)},${lon.toFixed(6)}`; 
 
     if (coordMap[key]) {
@@ -58,14 +60,16 @@ const adjustDuplicates = (places) => {
 
       // Update place coordinates
       const newCoord = movePoint(lat, lon, distance, bearing);      
-      place.coordinates.latitude = newCoord.lat;
-      place.coordinates.longitude = newCoord.lon;
+      adjustedPlaces[i].coordinates.latitude = newCoord.lat;
+      adjustedPlaces[i].coordinates.longitude = newCoord.lon;
 
       coordMap[key] += 1;
     } else {
       coordMap[key] = 1;
     }
   }
+
+  return adjustedPlaces;
 };
 
 const Map = ({ places, mapLoading }) => {
@@ -75,7 +79,7 @@ const Map = ({ places, mapLoading }) => {
   // Initialize the map only once
   useEffect(() => {
     if (map.current) return;
-    const initialCoordinates = [-114, 51]; // Default coordinates (e.g., Calgary)
+    const initialCoordinates = [-114, 51]; 
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -83,35 +87,56 @@ const Map = ({ places, mapLoading }) => {
       center: initialCoordinates,
       zoom: 10,
     });
+
+    // TODO: Add navigation
   }, []);
 
   // Add or update markers, clustering, and routes
   useEffect(() => {
     if (mapLoading || !places.length) return;
 
-    // 3. Adjust duplicates before processing
-    adjustDuplicates(places);
+    // Adjust duplicates before processing
+    const adjustedPlaces = adjustDuplicates(places).filter(place => {
+      const lng = Number(place.coordinates.longitude);
+      const lat = Number(place.coordinates.latitude);
+      return (
+        !isNaN(lng) &&
+        !isNaN(lat) &&
+        lng >= -180 &&
+        lng <= 180 &&
+        lat >= -90 &&
+        lat <= 90
+      );
+    });
+
+    console.log('Adjusted Places:', adjustedPlaces);
 
     // Clear existing data layers to prevent duplicates
-    if (map.current.getLayer('clusters')) {
-      map.current.removeLayer('clusters');
-      map.current.removeLayer('cluster-count');
-      map.current.removeLayer('unclustered-point');
-      map.current.removeSource('places');
-    }
-    if (map.current.getLayer('route')) {
-      map.current.removeLayer('route');
-      map.current.removeSource('route');
-    }
+    const removeLayerAndSource = (layerId, sourceId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.removeLayer(layerId);
+      }
+      if (map.current.getSource(sourceId)) {
+        map.current.removeSource(sourceId);
+      }
+    };
+
+    removeLayerAndSource('clusters', 'places');
+    removeLayerAndSource('cluster-count', 'places');
+    removeLayerAndSource('unclustered-point', 'places');
+    removeLayerAndSource('route', 'route');
 
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
-      features: places.map((place, index) => ({
+      features: adjustedPlaces.map((place, index) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [place.coordinates.longitude, place.coordinates.latitude],
+          coordinates: [
+            Number(place.coordinates.longitude),
+            Number(place.coordinates.latitude),
+          ],
         },
         properties: {
           index: index + 1,
@@ -119,7 +144,9 @@ const Map = ({ places, mapLoading }) => {
           address: place.address,
           isAirport: place.isAirport,
           primaryType: place.details ? place.details.primaryType : 'N/A',
-          primaryTypeDisplayName: place.details ? place.details.primaryTypeDisplayName : 'N/A',
+          primaryTypeDisplayName: place.details
+            ? place.details.primaryTypeDisplayName
+            : 'N/A',
           googleId: place.predictedLocation.precisePlaceId,
           website: place.details ? place.details.websiteUri : 'N/A',
           googleMapsUri: place.details ? place.details.googleMapsUri : 'N/A',
@@ -128,13 +155,15 @@ const Map = ({ places, mapLoading }) => {
       })),
     };
 
+    console.log('GeoJSON:', geojson);
+
     // Add GeoJSON source with clustering
     map.current.addSource('places', {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 12,
-      clusterRadius: 30,
+      clusterMaxZoom: 9,
+      clusterRadius: 20,
     });
 
     // Add cluster layer
@@ -144,7 +173,7 @@ const Map = ({ places, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#99d8c9',
+        'circle-color': '#DB4437',
         'circle-radius': 20,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#fff',
@@ -172,18 +201,25 @@ const Map = ({ places, mapLoading }) => {
       source: 'places',
       filter: ['!', ['has', 'point_count']],
       paint: {
-        'circle-color': '#99d8c9',
-        'circle-radius': 8,
+        'circle-color': '#DB4437',
+        'circle-radius': 12,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#000',
       },
     });
 
-    // Add route layer
-    if (places.length > 1) {
-      const routeCoordinates = places.map(
-        (place) => [place.coordinates.longitude, place.coordinates.latitude]
-      );
+    // Filter places to include only airports
+    const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
+
+    console.log('Airport Places:', airportPlaces);
+
+    if (airportPlaces.length > 1) {
+      const routeCoordinates = airportPlaces.map(place => [
+        Number(place.coordinates.longitude),
+        Number(place.coordinates.latitude),
+      ]);
+
+      console.log('Route Coordinates:', routeCoordinates);
 
       const routeGeoJSON = {
         type: 'Feature',
@@ -193,11 +229,13 @@ const Map = ({ places, mapLoading }) => {
         },
       };
 
+      // Add route source
       map.current.addSource('route', {
         type: 'geojson',
         data: routeGeoJSON,
       });
 
+      // Add route layer
       map.current.addLayer({
         id: 'route',
         type: 'line',
@@ -209,10 +247,17 @@ const Map = ({ places, mapLoading }) => {
         paint: {
           'line-color': '#007AFF',
           'line-width': 4,
+          'line-dasharray': [2, 3]
         },
       });
+
+      // Optionally, fit the map to the route
+      const bounds = new mapboxgl.LngLatBounds();
+      routeCoordinates.forEach(coord => bounds.extend(coord));
+      map.current.fitBounds(bounds, { padding: 50 });
     }
 
+    // Create a popup instance
     const popup = new mapboxgl.Popup({
       closeButton: false,       
       closeOnClick: false    
@@ -280,11 +325,15 @@ const Map = ({ places, mapLoading }) => {
 
     // Fit map to all points
     const bounds = new mapboxgl.LngLatBounds();
-    places.forEach((place) => {
-      bounds.extend([place.coordinates.longitude, place.coordinates.latitude]);
+    adjustedPlaces.forEach((place) => {
+      const lng = Number(place.coordinates.longitude);
+      const lat = Number(place.coordinates.latitude);
+      if (!isNaN(lng) && !isNaN(lat)) {
+        bounds.extend([lng, lat]);
+      }
     });
 
-    if (places.length > 0) {
+    if (adjustedPlaces.length > 0) {
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 12,
@@ -293,7 +342,7 @@ const Map = ({ places, mapLoading }) => {
   }, [mapLoading, places]);
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Map container */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
