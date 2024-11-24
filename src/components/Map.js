@@ -114,9 +114,16 @@ const Map = ({ places, mapLoading }) => {
           coordinates: [place.coordinates.longitude, place.coordinates.latitude],
         },
         properties: {
+          index: index + 1,
           name: place.name,
           address: place.address,
-          index: index + 1,
+          isAirport: place.isAirport,
+          primaryType: place.details ? place.details.primaryType : 'N/A',
+          primaryTypeDisplayName: place.details ? place.details.primaryTypeDisplayName : 'N/A',
+          googleId: place.predictedLocation.precisePlaceId,
+          website: place.details ? place.details.websiteUri : 'N/A',
+          googleMapsUri: place.details ? place.details.googleMapsUri : 'N/A',
+          phone: place.details ? place.details.nationalPhoneNumber : 'N/A',
         },
       })),
     };
@@ -219,6 +226,7 @@ const Map = ({ places, mapLoading }) => {
       // Get coordinates and details of hovered location
       const coordinates = e.features[0].geometry.coordinates.slice();
       const { name, address, index } = e.features[0].properties;
+      console.log(e.features[0].properties)
 
       const htmlContent = `
         <h4>Location ${index}</h4>
