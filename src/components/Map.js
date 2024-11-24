@@ -88,7 +88,8 @@ const Map = ({ places, mapLoading }) => {
       zoom: 10,
     });
 
-    // TODO: Add navigation
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl());
   }, []);
 
   // Add or update markers, clustering, and routes
