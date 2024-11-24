@@ -221,7 +221,32 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // **Add Route Layer Here**
+     // Add unclustered airport points
+     map.current.addLayer({
+      id: 'unclustered-point-airport',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'airport-icon', 
+        'icon-size': 0.07, 
+        'icon-anchor': 'bottom',
+      },
+    });
+
+    // Add unclustered marker points
+    map.current.addLayer({
+      id: 'unclustered-point-marker',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon', 
+        'icon-size': 0.1, 
+        'icon-anchor': 'bottom',
+      },
+    });
+
     // Only add if there are routes to display
     const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
     if (airportPlaces.length > 1) {
@@ -258,39 +283,10 @@ const Map = ({ places, mapLoading }) => {
         paint: {
           'line-color': '#007AFF',
           'line-width': 4,
-          'line-dasharray': [2, 3], // Dotted line
+          'line-dasharray': [2, 6], 
         },
       });
     }
-
-    // **Add Route Layer Before Unclustered Markers**
-    // To ensure it appears below the unclustered markers, add it before adding markers
-
-    // Add unclustered airport points
-    map.current.addLayer({
-      id: 'unclustered-point-airport',
-      type: 'symbol',
-      source: 'places',
-      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
-      layout: {
-        'icon-image': 'airport-icon', // Use the image name as a string
-        'icon-size': 0.07, // Adjust size as needed
-        'icon-anchor': 'bottom',
-      },
-    });
-
-    // Add unclustered marker points
-    map.current.addLayer({
-      id: 'unclustered-point-marker',
-      type: 'symbol',
-      source: 'places',
-      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
-      layout: {
-        'icon-image': 'marker-icon', // Use the image name as a string
-        'icon-size': 0.1, // Adjust size as needed
-        'icon-anchor': 'bottom',
-      },
-    });
 
     // Create a popup instance
     const popup = new mapboxgl.Popup({
