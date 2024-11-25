@@ -76,7 +76,7 @@ const adjustDuplicates = (places) => {
   return adjustedPlaces;
 };
 
-const Map = ({ places, mapLoading }) => {
+const Map = ({ places, routes, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
 
@@ -100,7 +100,10 @@ const Map = ({ places, mapLoading }) => {
       // Load airport icon
       if (!map.current.hasImage('airport-icon')) {
         map.current.loadImage(airportIcon, (error, image) => {
-          if (error) throw error;
+          if (error) {
+            console.error('Error loading airport icon:', error);
+            return;
+          }
           map.current.addImage('airport-icon', image);
           console.log('Airport icon loaded');
         });
@@ -109,7 +112,10 @@ const Map = ({ places, mapLoading }) => {
       // Load marker icon
       if (!map.current.hasImage('marker-icon')) {
         map.current.loadImage(markerIcon, (error, image) => {
-          if (error) throw error;
+          if (error) {
+            console.error('Error loading marker icon:', error);
+            return;
+          }
           map.current.addImage('marker-icon', image);
           console.log('Marker icon loaded');
         });
@@ -137,22 +143,34 @@ const Map = ({ places, mapLoading }) => {
 
     console.log('Adjusted Places:', adjustedPlaces);
 
-    // Clear existing data layers to prevent duplicates
-    const removeLayerAndSource = (layerId, sourceId) => {
+    // Remove all layers
+    const layersToRemove = [
+      'airport-route',
+      'routes-layer',
+      'clusters',
+      'cluster-count',
+      'unclustered-point-airport',
+      'unclustered-point-marker'
+    ];
+
+    layersToRemove.forEach(layerId => {
       if (map.current.getLayer(layerId)) {
         map.current.removeLayer(layerId);
+        console.log(`Removed layer: ${layerId}`);
       }
+    });
+
+    // Remove all sources
+    const sourcesToRemove = ['route', 'routes', 'places'];
+
+    sourcesToRemove.forEach(sourceId => {
       if (map.current.getSource(sourceId)) {
         map.current.removeSource(sourceId);
+        console.log(`Removed source: ${sourceId}`);
       }
-    };
+    });
 
-    removeLayerAndSource('clusters', 'places');
-    removeLayerAndSource('cluster-count', 'places');
-    removeLayerAndSource('unclustered-point-airport', 'places'); 
-    removeLayerAndSource('unclustered-point-marker', 'places');  
-    removeLayerAndSource('route', 'route');
-
+    // Add all sources
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
@@ -221,20 +239,100 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-     // Add unclustered airport points
-     map.current.addLayer({
+    // Only add if there are enough airports to display a route
+    const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
+    if (airportPlaces.length > 1) {
+      const airportRouteCoordinates = airportPlaces.map(place => [
+        Number(place.coordinates.longitude),
+        Number(place.coordinates.latitude),
+      ]);
+
+      console.log('Airport Route Coordinates:', airportRouteCoordinates);
+
+      const routeGeoJSON = {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: airportRouteCoordinates,
+        },
+      };
+
+      // Add airport route source
+      map.current.addSource('route', {
+        type: 'geojson',
+        data: routeGeoJSON,
+      });
+
+      // Add airport route layer
+      map.current.addLayer({
+        id: 'airport-route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#000000',
+          'line-width': 6,
+          'line-dasharray': [2, 6], 
+        },
+      });
+    }
+
+    // Add routes to map
+    if (routes.length > 0) {
+      // Convert routes to GeoJSON FeatureCollection
+      const routesGeoJSON = {
+        type: 'FeatureCollection',
+        features: routes.map((route) => ({
+          type: 'Feature',
+          geometry: route.route, 
+          properties: {
+            from: route.from.name,
+            to: route.to.name,
+          },
+        })),
+      };
+
+      console.log('Routes GeoJSON:', routesGeoJSON);
+
+      // Add routes source
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: routesGeoJSON,
+      });
+
+      // Add routes layer
+      map.current.addLayer({
+        id: 'routes-layer', 
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#007AFF',
+          'line-width': 4
+        },
+      });
+    }  
+
+    // Add unclustered airports
+    map.current.addLayer({
       id: 'unclustered-point-airport',
       type: 'symbol',
       source: 'places',
       filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'airport-icon', 
-        'icon-size': 0.07, 
+        'icon-size': 0.07,
         'icon-anchor': 'bottom',
       },
     });
 
-    // Add unclustered marker points
+    // Add unclusted markers
     map.current.addLayer({
       id: 'unclustered-point-marker',
       type: 'symbol',
@@ -247,54 +345,13 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // Only add if there are routes to display
-    const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
-    if (airportPlaces.length > 1) {
-      const routeCoordinates = airportPlaces.map(place => [
-        Number(place.coordinates.longitude),
-        Number(place.coordinates.latitude),
-      ]);
-
-      console.log('Route Coordinates:', routeCoordinates);
-
-      const routeGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: routeCoordinates,
-        },
-      };
-
-      // Add route source
-      map.current.addSource('route', {
-        type: 'geojson',
-        data: routeGeoJSON,
-      });
-
-      // Add route layer
-      map.current.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#007AFF',
-          'line-width': 4,
-          'line-dasharray': [2, 6], 
-        },
-      });
-    }
-
     // Create a popup instance
     const popup = new mapboxgl.Popup({
       closeButton: false,       
       closeOnClick: false    
     });
 
-    // Show popup on hover 
+    // Show popup on hover
     map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
       // Change cursor style to pointer 
       map.current.getCanvas().style.cursor = 'pointer';
@@ -316,7 +373,7 @@ const Map = ({ places, mapLoading }) => {
         .addTo(map.current);
     });
 
-    // Reset cursor and remove popup when unhovering
+    // Reset cursor, remove popup When unhovering
     map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
       popup.remove();
@@ -354,7 +411,7 @@ const Map = ({ places, mapLoading }) => {
       map.current.getCanvas().style.cursor = '';
     });
 
-    // Fit map to all points
+    // Fit map to points
     const bounds = new mapboxgl.LngLatBounds();
     adjustedPlaces.forEach((place) => {
       const lng = Number(place.coordinates.longitude);
@@ -378,7 +435,7 @@ const Map = ({ places, mapLoading }) => {
       map.current.off('mouseenter', 'clusters');
       map.current.off('mouseleave', 'clusters');
     };
-  }, [mapLoading, places]);
+  }, [mapLoading, places, routes]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
