@@ -65,7 +65,6 @@ const Popup = ({ properties }) => {
   );
 };
 
-// Define PropTypes
 Popup.propTypes = {
   properties: PropTypes.shape({
     index: PropTypes.number,
@@ -81,7 +80,7 @@ Popup.propTypes = {
   }),
 };
 
-// Define Default Props
+// Default props
 Popup.defaultProps = {
   properties: null,
 };

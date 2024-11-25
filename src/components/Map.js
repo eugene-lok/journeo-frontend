@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Popup from './Popup';
@@ -7,6 +7,8 @@ import Popup from './Popup';
 // Icons
 import airportIcon from './../icons/airplane.png'; 
 import markerIcon from './../icons/marker.png';   
+
+
 
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
@@ -173,7 +175,6 @@ const Map = ({ places, routes, mapLoading }) => {
       }
     });
 
-    // Add all sources
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
@@ -351,15 +352,15 @@ const Map = ({ places, routes, mapLoading }) => {
     // Initialize a single popup instance using a ref
     if (!popupRef.current) {
       popupRef.current = new mapboxgl.Popup({
-        closeButton: false,       
-        closeOnClick: false    
+        closeButton: true,       // Enable the close button
+        closeOnClick: false      // Allow interactions within the popup
       });
     }
 
     const popup = popupRef.current;
 
-    // Show popup on hover
-    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
+    // Show popup on click
+    map.current.on('click', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
       // Change cursor style to pointer 
       map.current.getCanvas().style.cursor = 'pointer';
 
@@ -370,21 +371,31 @@ const Map = ({ places, routes, mapLoading }) => {
 
       // Check if properties exist
       if (!feature.properties) {
-        console.warn('Popup properties are undefined for the hovered feature.');
+        console.warn('Popup properties are undefined for the clicked feature.');
         return;
       }
 
       const properties = feature.properties;
 
-      console.log('Hovered Feature Properties:', properties);
+      console.log('Clicked Feature Properties:', properties);
 
       // Get coordinates
       const coordinates = feature.geometry.coordinates.slice();
 
+      const handleClose = () => {
+        if (popupRef.current) {
+          if (popupRef.current._popupRoot) {
+            popupRef.current._popupRoot.unmount();
+            delete popupRef.current._popupRoot;
+          }
+          popupRef.current.remove();
+        }
+      };
+  
       // Create DOM node for the popup content
       const popupNode = document.createElement('div');
       const root = createRoot(popupNode);
-      root.render(<Popup properties={properties} />);
+      root.render(<Popup properties={properties} onClose={handleClose} />);
 
       // Set the content and add the popup to the map
       popup
@@ -396,17 +407,12 @@ const Map = ({ places, routes, mapLoading }) => {
       popup._popupRoot = root;
     });
 
-    // Reset cursor, remove popup When unhovering
-    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
+    // Change cursor to pointer when hovering over clusters
+    map.current.on('mouseenter', 'clusters', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'clusters', () => {
       map.current.getCanvas().style.cursor = '';
-      if (popupRef.current) {
-        // Unmount popup
-        if (popupRef.current._popupRoot) {
-          popupRef.current._popupRoot.unmount();
-          delete popupRef.current._popupRoot;
-        }
-        popupRef.current.remove();
-      }
     });
 
     // Zoom into clusters on click
@@ -425,14 +431,6 @@ const Map = ({ places, routes, mapLoading }) => {
           zoom: zoom,
         });
       });
-    });
-
-    // Change cursor to pointer when hovering over clusters
-    map.current.on('mouseenter', 'clusters', () => {
-      map.current.getCanvas().style.cursor = 'pointer';
-    });
-    map.current.on('mouseleave', 'clusters', () => {
-      map.current.getCanvas().style.cursor = '';
     });
 
     // Fit map to points
@@ -454,10 +452,10 @@ const Map = ({ places, routes, mapLoading }) => {
 
     // Cleanup event listeners on unmount or update
     return () => {
-      map.current.off('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker']);
-      map.current.off('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('click', ['unclustered-point-airport', 'unclustered-point-marker']);
       map.current.off('mouseenter', 'clusters');
       map.current.off('mouseleave', 'clusters');
+      map.current.off('click', 'clusters');
     };
   }, [mapLoading, places, routes]);
 
