@@ -40,17 +40,19 @@ function App() {
 
           {showItinerary && (
             <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto">
-              <div className="p-4">
+              <div className="p-4 h-full flex flex-col">
                 <button
-                  className="mb-4 text-blue-500 "
+                  className="mb-4 text-blue-500 absolute top-6 left-8"
                   onClick={() => setShowItinerary(false)}
                 >
                   Close Itinerary
                 </button>
-                <Itinerary
-                  itineraryData={itineraryData}
-                  itineraryLoading={itineraryLoading}
-                />
+                <div className="flex-grow">
+                  <Itinerary
+                    itineraryData={itineraryData}
+                    itineraryLoading={itineraryLoading}
+                  />
+                </div>
               </div>
             </div>
           )}

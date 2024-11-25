@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from 'react';
+import {createRoot} from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import Popup from './Popup';
 
 // Icons
 import airportIcon from './../icons/airplane.png'; 
@@ -79,6 +81,7 @@ const adjustDuplicates = (places) => {
 const Map = ({ places, routes, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const popupRef = useRef(null); 
 
   // Initialize the map only once
   useEffect(() => {
@@ -345,11 +348,15 @@ const Map = ({ places, routes, mapLoading }) => {
       },
     });
 
-    // Create a popup instance
-    const popup = new mapboxgl.Popup({
-      closeButton: false,       
-      closeOnClick: false    
-    });
+    // Initialize a single popup instance using a ref
+    if (!popupRef.current) {
+      popupRef.current = new mapboxgl.Popup({
+        closeButton: false,       
+        closeOnClick: false    
+      });
+    }
+
+    const popup = popupRef.current;
 
     // Show popup on hover
     map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
@@ -358,25 +365,47 @@ const Map = ({ places, routes, mapLoading }) => {
 
       // Get coordinates and details of hovered location
       const coordinates = e.features[0].geometry.coordinates.slice();
-      const { name, address, index } = e.features[0].properties;
-      console.log(e.features[0].properties)
+      const { 
+        name, 
+        address, 
+        index, 
+        //primaryType
+      } = e.features[0].properties;
+      console.log(e.features[0].properties);
 
-      const htmlContent = `
-        <h4>Location ${index}</h4>
-        <h3>${name}</h3>
-        <p>${address}</p>
-      `;
+      // Create DOM node for the popup content
+      const popupNode = document.createElement('div');
+      const root = createRoot(popupNode);
+      root.render(
+        <Popup
+          index={index} 
+          name={name} 
+          address={address} 
+          //primaryType={primaryType} 
+        />
+      );
 
+      // Set the content and add the popup to the map
       popup
         .setLngLat(coordinates)
-        .setHTML(htmlContent)
+        .setDOMContent(popupNode)
         .addTo(map.current);
+
+      // Store the root for unmounting later
+      popup._popupRoot = root;
     });
 
     // Reset cursor, remove popup When unhovering
     map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
-      popup.remove();
+      if (popupRef.current) {
+        // Unmount popup
+        if (popupRef.current._popupRoot) {
+          popupRef.current._popupRoot.unmount();
+          delete popupRef.current._popupRoot;
+        }
+        popupRef.current.remove();
+      }
     });
 
     // Zoom into clusters on click
@@ -402,12 +431,6 @@ const Map = ({ places, routes, mapLoading }) => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
     map.current.on('mouseleave', 'clusters', () => {
-      map.current.getCanvas().style.cursor = '';
-    });
-    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
-      map.current.getCanvas().style.cursor = 'pointer';
-    });
-    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
     });
 
