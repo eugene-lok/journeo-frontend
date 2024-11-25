@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData}) => {
+const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData, setRouteData, setShowItinerary}) => {
     const [messages, setMessages] = useState([
       {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
     ]); 
@@ -54,7 +54,10 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
             setItineraryData(data.response); 
             setLocationData({
               places: data.response.places
-            }); 
+            });
+            setRouteData({
+              routes: data.response.routes
+            }) 
             
             const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
             setMessages((prev) => [...prev, completionMessage]);
@@ -68,8 +71,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         } 
         finally {
           setIsLoading(false);
-          setItineraryLoading(false);  // Start itinerary spinner
-          setMapLoading(false);  // Start map spinner
+          setItineraryLoading(false);  // Stop itinerary spinner
+          setMapLoading(false);  // Stop map spinner
+          setShowItinerary(true); // Show itinerary
         }
     };
     
