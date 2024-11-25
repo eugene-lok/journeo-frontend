@@ -213,6 +213,7 @@ const Map = ({ places, routes, mapLoading }) => {
       cluster: true,
       clusterMaxZoom: 9,
       clusterRadius: 20,
+      generatedId: true
     });
 
     // Add cluster layer
@@ -412,6 +413,20 @@ const Map = ({ places, routes, mapLoading }) => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
     map.current.on('mouseleave', 'clusters', () => {
+      map.current.getCanvas().style.cursor = '';
+    });
+
+    // Change cursor to pointer when hovering over markers
+    map.current.on('mouseenter', 'unclustered-point-marker', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'unclustered-point-marker', () => {
+      map.current.getCanvas().style.cursor = '';
+    });
+    map.current.on('mouseenter', 'unclustered-point-airport', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'unclustered-point-airport', () => {
       map.current.getCanvas().style.cursor = '';
     });
 
