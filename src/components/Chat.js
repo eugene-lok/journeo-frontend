@@ -61,6 +61,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
             
             const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
             setMessages((prev) => [...prev, completionMessage]);
+            setShowItinerary(true); // Show itinerary
           }
           
         } 
@@ -73,7 +74,6 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           setIsLoading(false);
           setItineraryLoading(false);  // Stop itinerary spinner
           setMapLoading(false);  // Stop map spinner
-          setShowItinerary(true); // Show itinerary
         }
     };
     
