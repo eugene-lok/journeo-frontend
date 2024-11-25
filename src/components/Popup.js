@@ -1,4 +1,3 @@
-// Popup.js
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -24,10 +23,26 @@ const Popup = ({ properties }) => {
     phone,
   } = properties;
 
+  const primaryTypeDisplayNameText = (() => {
+    try {
+      return typeof primaryTypeDisplayName === 'string'
+        ? JSON.parse(primaryTypeDisplayName)
+        : primaryTypeDisplayName;
+    } catch (error) {
+      console.error('Error parsing primaryTypeDisplayName:', error);
+      return null; 
+    }
+  })();
+
   return (
     <div className="p-4 bg-white rounded-lg shadow-md max-w-xs">
       <h2 className="text-lg font-semibold mb-1">Location {index || 'N/A'}</h2>
       <h3 className="text-sm font-medium">{name || 'N/A'}</h3>
+      {primaryTypeDisplayNameText?.text && (
+        <p className="text-xs mt-1 font-bold text-emerald-900">
+          {primaryTypeDisplayNameText.text}
+        </p>
+      )}
       <p className="text-xs text-gray-600">{address || 'N/A'}</p>
 
       {website && website !== 'N/A' && (
