@@ -331,11 +331,11 @@ const Map = ({ places, routes, mapLoading }) => {
       layout: {
         'icon-image': 'airport-icon', 
         'icon-size': 0.07,
-        'icon-anchor': 'bottom',
+        'icon-anchor': 'center',
       },
     });
 
-    // Add unclusted markers
+    // Add unclustered markers
     map.current.addLayer({
       id: 'unclustered-point-marker',
       type: 'symbol',
@@ -344,7 +344,7 @@ const Map = ({ places, routes, mapLoading }) => {
       layout: {
         'icon-image': 'marker-icon', 
         'icon-size': 0.1, 
-        'icon-anchor': 'bottom',
+        'icon-anchor': 'center',
       },
     });
 
@@ -363,27 +363,28 @@ const Map = ({ places, routes, mapLoading }) => {
       // Change cursor style to pointer 
       map.current.getCanvas().style.cursor = 'pointer';
 
-      // Get coordinates and details of hovered location
-      const coordinates = e.features[0].geometry.coordinates.slice();
-      const { 
-        name, 
-        address, 
-        index, 
-        //primaryType
-      } = e.features[0].properties;
-      console.log(e.features[0].properties);
+      // Ensure features are present
+      if (!e.features || e.features.length === 0) return;
+
+      const feature = e.features[0];
+
+      // Check if properties exist
+      if (!feature.properties) {
+        console.warn('Popup properties are undefined for the hovered feature.');
+        return;
+      }
+
+      const properties = feature.properties;
+
+      console.log('Hovered Feature Properties:', properties);
+
+      // Get coordinates
+      const coordinates = feature.geometry.coordinates.slice();
 
       // Create DOM node for the popup content
       const popupNode = document.createElement('div');
       const root = createRoot(popupNode);
-      root.render(
-        <Popup
-          index={index} 
-          name={name} 
-          address={address} 
-          //primaryType={primaryType} 
-        />
-      );
+      root.render(<Popup properties={properties} />);
 
       // Set the content and add the popup to the map
       popup
@@ -413,20 +414,20 @@ const Map = ({ places, routes, mapLoading }) => {
       const features = map.current.queryRenderedFeatures(e.point, {
         layers: ['clusters'],
       });
-      const clusterId = features[0].properties.cluster_id;
-      map.current
-        .getSource('places')
-        .getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
+      if (!features || features.length === 0) return;
 
-          map.current.easeTo({
-            center: features[0].geometry.coordinates,
-            zoom: zoom,
-          });
+      const clusterId = features[0].properties.cluster_id;
+      map.current.getSource('places').getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+
+        map.current.easeTo({
+          center: features[0].geometry.coordinates,
+          zoom: zoom,
         });
+      });
     });
 
-    // Change cursor to pointer when hovering over clusters and points
+    // Change cursor to pointer when hovering over clusters
     map.current.on('mouseenter', 'clusters', () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
