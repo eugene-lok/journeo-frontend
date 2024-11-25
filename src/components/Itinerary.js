@@ -76,11 +76,11 @@ const Itinerary = ({ itineraryData, itineraryLoading }) => {
   // Placeholder state
   if (!itineraryLoading && !itineraryData) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-200 bg-opacity-50">
-        <p className="text-gray-500 text-lg">
+      <div className="flex items-center justify-center h-full bg-gray-300 bg-opacity-50 rounded-xl">
+        <p className="text-gray-600 text-lg">
           Your itinerary will appear here
         </p>
-      </div>
+    </div>
     );
   }
 
