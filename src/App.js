@@ -7,6 +7,7 @@ import Itinerary from './components/Itinerary';
 function App() {
   const [itineraryData, setItineraryData] = useState(null);
   const [locationData, setLocationData] = useState(null);
+  const [routeData, setRouteData] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
   const [itineraryLoading, setItineraryLoading] = useState(false);
   const [showItinerary, setShowItinerary] = useState(false);
@@ -23,6 +24,8 @@ function App() {
               setItineraryLoading={setItineraryLoading}
               setLocationData={setLocationData}
               setItineraryData={setItineraryData}
+              setRouteData={setRouteData}
+              setShowItinerary={setShowItinerary}
             />
           </div>
         </div>
@@ -31,6 +34,7 @@ function App() {
         <div className="flex-1 relative h-full overflow-hidden">
           <Map
             places={locationData ? locationData.places : []}
+            routes={routeData ? routeData.routes : []}
             mapLoading={mapLoading}
           />
 

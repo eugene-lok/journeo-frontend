@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData}) => {
+const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData, setRouteData, setShowItinerary}) => {
     const [messages, setMessages] = useState([
       {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
     ]); 
@@ -15,7 +15,10 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
       scrollToBottom();
     }, [messages]);
     
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+    // Production URL
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    // Local URL
+    //const API_BASE_URL = 'http://127.0.0.1:8000';
 
     // Handle user input submission
     const handleSend = async () => {
@@ -51,7 +54,10 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
             setItineraryData(data.response); 
             setLocationData({
               places: data.response.places
-            }); 
+            });
+            setRouteData({
+              routes: data.response.routes
+            }) 
             
             const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
             setMessages((prev) => [...prev, completionMessage]);
@@ -65,8 +71,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         } 
         finally {
           setIsLoading(false);
-          setItineraryLoading(false);  // Start itinerary spinner
-          setMapLoading(false);  // Start map spinner
+          setItineraryLoading(false);  // Stop itinerary spinner
+          setMapLoading(false);  // Stop map spinner
+          setShowItinerary(true); // Show itinerary
         }
     };
     

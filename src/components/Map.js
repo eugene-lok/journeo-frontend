@@ -2,6 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+// Icons
+import airportIcon from './../icons/airplane.png'; 
+import markerIcon from './../icons/marker.png';   
+
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
@@ -38,13 +42,15 @@ const movePoint = (lat, lon, distance, bearing) => {
   return { lat: newLat, lon: newLon };
 };
 
-// Adjusts duplicates coordiantes by moving them 20m, scaling with latitude
+// Adjusts duplicates coordinates by moving them 20m, scaling with latitude
 const adjustDuplicates = (places) => {
   const coordMap = {};
-  for (let i = 0; i < places.length; i++) {
-    const place = places[i];
-    const lat = place.coordinates.latitude;
-    const lon = place.coordinates.longitude;
+  const adjustedPlaces = [...places]; 
+
+  for (let i = 0; i < adjustedPlaces.length; i++) {
+    const place = adjustedPlaces[i];
+    const lat = Number(place.coordinates.latitude);
+    const lon = Number(place.coordinates.longitude);
     const key = `${lat.toFixed(6)},${lon.toFixed(6)}`; 
 
     if (coordMap[key]) {
@@ -58,24 +64,26 @@ const adjustDuplicates = (places) => {
 
       // Update place coordinates
       const newCoord = movePoint(lat, lon, distance, bearing);      
-      place.coordinates.latitude = newCoord.lat;
-      place.coordinates.longitude = newCoord.lon;
+      adjustedPlaces[i].coordinates.latitude = newCoord.lat;
+      adjustedPlaces[i].coordinates.longitude = newCoord.lon;
 
       coordMap[key] += 1;
     } else {
       coordMap[key] = 1;
     }
   }
+
+  return adjustedPlaces;
 };
 
-const Map = ({ places, mapLoading }) => {
+const Map = ({ places, routes, mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
 
   // Initialize the map only once
   useEffect(() => {
     if (map.current) return;
-    const initialCoordinates = [-114, 51]; // Default coordinates (e.g., Calgary)
+    const initialCoordinates = [-114, 51]; 
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -83,51 +91,124 @@ const Map = ({ places, mapLoading }) => {
       center: initialCoordinates,
       zoom: 10,
     });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl());
+
+    // Add the custom icons on map load
+    map.current.on('load', () => {
+      // Load airport icon
+      if (!map.current.hasImage('airport-icon')) {
+        map.current.loadImage(airportIcon, (error, image) => {
+          if (error) {
+            console.error('Error loading airport icon:', error);
+            return;
+          }
+          map.current.addImage('airport-icon', image);
+          console.log('Airport icon loaded');
+        });
+      }
+
+      // Load marker icon
+      if (!map.current.hasImage('marker-icon')) {
+        map.current.loadImage(markerIcon, (error, image) => {
+          if (error) {
+            console.error('Error loading marker icon:', error);
+            return;
+          }
+          map.current.addImage('marker-icon', image);
+          console.log('Marker icon loaded');
+        });
+      }
+    });
   }, []);
 
   // Add or update markers, clustering, and routes
   useEffect(() => {
     if (mapLoading || !places.length) return;
 
-    // 3. Adjust duplicates before processing
-    adjustDuplicates(places);
+    // Adjust duplicates before processing
+    const adjustedPlaces = adjustDuplicates(places).filter(place => {
+      const lng = Number(place.coordinates.longitude);
+      const lat = Number(place.coordinates.latitude);
+      return (
+        !isNaN(lng) &&
+        !isNaN(lat) &&
+        lng >= -180 &&
+        lng <= 180 &&
+        lat >= -90 &&
+        lat <= 90
+      );
+    });
 
-    // Clear existing data layers to prevent duplicates
-    if (map.current.getLayer('clusters')) {
-      map.current.removeLayer('clusters');
-      map.current.removeLayer('cluster-count');
-      map.current.removeLayer('unclustered-point');
-      map.current.removeSource('places');
-    }
-    if (map.current.getLayer('route')) {
-      map.current.removeLayer('route');
-      map.current.removeSource('route');
-    }
+    console.log('Adjusted Places:', adjustedPlaces);
 
+    // Remove all layers
+    const layersToRemove = [
+      'airport-route',
+      'routes-layer',
+      'clusters',
+      'cluster-count',
+      'unclustered-point-airport',
+      'unclustered-point-marker'
+    ];
+
+    layersToRemove.forEach(layerId => {
+      if (map.current.getLayer(layerId)) {
+        map.current.removeLayer(layerId);
+        console.log(`Removed layer: ${layerId}`);
+      }
+    });
+
+    // Remove all sources
+    const sourcesToRemove = ['route', 'routes', 'places'];
+
+    sourcesToRemove.forEach(sourceId => {
+      if (map.current.getSource(sourceId)) {
+        map.current.removeSource(sourceId);
+        console.log(`Removed source: ${sourceId}`);
+      }
+    });
+
+    // Add all sources
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
-      features: places.map((place, index) => ({
+      features: adjustedPlaces.map((place, index) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [place.coordinates.longitude, place.coordinates.latitude],
+          coordinates: [
+            Number(place.coordinates.longitude),
+            Number(place.coordinates.latitude),
+          ],
         },
         properties: {
+          index: index + 1,
           name: place.name,
           address: place.address,
-          index: index + 1,
+          isAirport: place.isAirport,
+          primaryType: place.details ? place.details.primaryType : 'N/A',
+          primaryTypeDisplayName: place.details
+            ? place.details.primaryTypeDisplayName
+            : 'N/A',
+          googleId: place.predictedLocation.precisePlaceId,
+          website: place.details ? place.details.websiteUri : 'N/A',
+          googleMapsUri: place.details ? place.details.googleMapsUri : 'N/A',
+          phone: place.details ? place.details.nationalPhoneNumber : 'N/A',
         },
       })),
     };
+
+    console.log('GeoJSON:', geojson);
 
     // Add GeoJSON source with clustering
     map.current.addSource('places', {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 12,
-      clusterRadius: 30,
+      clusterMaxZoom: 9,
+      clusterRadius: 20,
     });
 
     // Add cluster layer
@@ -137,7 +218,7 @@ const Map = ({ places, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#99d8c9',
+        'circle-color': '#FF2E39',
         'circle-radius': 20,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#fff',
@@ -158,41 +239,33 @@ const Map = ({ places, mapLoading }) => {
       },
     });
 
-    // Add unclustered point layer with custom markers
-    map.current.addLayer({
-      id: 'unclustered-point',
-      type: 'circle',
-      source: 'places',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color': '#99d8c9',
-        'circle-radius': 8,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#000',
-      },
-    });
+    // Only add if there are enough airports to display a route
+    const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
+    if (airportPlaces.length > 1) {
+      const airportRouteCoordinates = airportPlaces.map(place => [
+        Number(place.coordinates.longitude),
+        Number(place.coordinates.latitude),
+      ]);
 
-    // Add route layer
-    if (places.length > 1) {
-      const routeCoordinates = places.map(
-        (place) => [place.coordinates.longitude, place.coordinates.latitude]
-      );
+      console.log('Airport Route Coordinates:', airportRouteCoordinates);
 
       const routeGeoJSON = {
         type: 'Feature',
         geometry: {
           type: 'LineString',
-          coordinates: routeCoordinates,
+          coordinates: airportRouteCoordinates,
         },
       };
 
+      // Add airport route source
       map.current.addSource('route', {
         type: 'geojson',
         data: routeGeoJSON,
       });
 
+      // Add airport route layer
       map.current.addLayer({
-        id: 'route',
+        id: 'airport-route',
         type: 'line',
         source: 'route',
         layout: {
@@ -200,23 +273,110 @@ const Map = ({ places, mapLoading }) => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#007AFF',
-          'line-width': 4,
+          'line-color': '#000000',
+          'line-width': 6,
+          'line-dasharray': [2, 6], 
         },
       });
     }
 
-    // Add popup for unclustered points
-    map.current.on('click', 'unclustered-point', (e) => {
+    // Add routes to map
+    if (routes.length > 0) {
+      // Convert routes to GeoJSON FeatureCollection
+      const routesGeoJSON = {
+        type: 'FeatureCollection',
+        features: routes.map((route) => ({
+          type: 'Feature',
+          geometry: route.route, 
+          properties: {
+            from: route.from.name,
+            to: route.to.name,
+          },
+        })),
+      };
+
+      console.log('Routes GeoJSON:', routesGeoJSON);
+
+      // Add routes source
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: routesGeoJSON,
+      });
+
+      // Add routes layer
+      map.current.addLayer({
+        id: 'routes-layer', 
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#007AFF',
+          'line-width': 4
+        },
+      });
+    }  
+
+    // Add unclustered airports
+    map.current.addLayer({
+      id: 'unclustered-point-airport',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'airport-icon', 
+        'icon-size': 0.07,
+        'icon-anchor': 'bottom',
+      },
+    });
+
+    // Add unclusted markers
+    map.current.addLayer({
+      id: 'unclustered-point-marker',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon', 
+        'icon-size': 0.1, 
+        'icon-anchor': 'bottom',
+      },
+    });
+
+    // Create a popup instance
+    const popup = new mapboxgl.Popup({
+      closeButton: false,       
+      closeOnClick: false    
+    });
+
+    // Show popup on hover
+    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], (e) => {
+      // Change cursor style to pointer 
+      map.current.getCanvas().style.cursor = 'pointer';
+
+      // Get coordinates and details of hovered location
       const coordinates = e.features[0].geometry.coordinates.slice();
       const { name, address, index } = e.features[0].properties;
+      console.log(e.features[0].properties)
 
-      new mapboxgl.Popup({ offset: 25 })
+      const htmlContent = `
+        <h4>Location ${index}</h4>
+        <h3>${name}</h3>
+        <p>${address}</p>
+      `;
+
+      popup
         .setLngLat(coordinates)
-        .setHTML(
-          `<h4>Location ${index}</h4><h3>${name}</h3><p>${address}</p>`
-        )
+        .setHTML(htmlContent)
         .addTo(map.current);
+    });
+
+    // Reset cursor, remove popup When unhovering
+    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
+      map.current.getCanvas().style.cursor = '';
+      popup.remove();
     });
 
     // Zoom into clusters on click
@@ -244,29 +404,41 @@ const Map = ({ places, mapLoading }) => {
     map.current.on('mouseleave', 'clusters', () => {
       map.current.getCanvas().style.cursor = '';
     });
-    map.current.on('mouseenter', 'unclustered-point', () => {
+    map.current.on('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
-    map.current.on('mouseleave', 'unclustered-point', () => {
+    map.current.on('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker'], () => {
       map.current.getCanvas().style.cursor = '';
     });
 
-    // Fit map to all points
+    // Fit map to points
     const bounds = new mapboxgl.LngLatBounds();
-    places.forEach((place) => {
-      bounds.extend([place.coordinates.longitude, place.coordinates.latitude]);
+    adjustedPlaces.forEach((place) => {
+      const lng = Number(place.coordinates.longitude);
+      const lat = Number(place.coordinates.latitude);
+      if (!isNaN(lng) && !isNaN(lat)) {
+        bounds.extend([lng, lat]);
+      }
     });
 
-    if (places.length > 0) {
+    if (adjustedPlaces.length > 0) {
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 12,
       });
     }
-  }, [mapLoading, places]);
+
+    // Cleanup event listeners on unmount or update
+    return () => {
+      map.current.off('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('mouseenter', 'clusters');
+      map.current.off('mouseleave', 'clusters');
+    };
+  }, [mapLoading, places, routes]);
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Map container */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
