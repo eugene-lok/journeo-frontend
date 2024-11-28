@@ -7,6 +7,7 @@ import Popup from './Popup';
 // Icons
 import airportIcon from './../icons/airport.png'; 
 import placeIcon from './../icons/place.png';
+import placeIconHover from './../icons/placeHover.png';
   
 
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
@@ -57,6 +58,18 @@ const Map = ({ places, routes, mapLoading }) => {
           console.log('Marker icon loaded');
         });
       }
+
+      // Load marker hover icon
+      if (!map.current.hasImage('marker-icon-hover')) {
+        map.current.loadImage(placeIconHover, (error, image) => {
+          if (error) {
+            console.error('Error loading marker hover icon:', error);
+            return;
+          }
+          map.current.addImage('marker-icon-hover', image);
+          console.log('Marker icon hover loaded');
+        });
+      }
     });
   }, []);
 
@@ -87,6 +100,7 @@ const Map = ({ places, routes, mapLoading }) => {
       'cluster-count',
       'unclustered-point-airport',
       'unclustered-point-marker',
+      'unclustered-point-marker-hover',
       'routes-layer'
     ];
 
@@ -246,6 +260,20 @@ const Map = ({ places, routes, mapLoading }) => {
       },
     });
 
+     // Add unclustered hover markers
+     map.current.addLayer({
+      id: 'unclustered-point-marker-hover',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon-hover', 
+        'icon-size': 0.4, 
+        'icon-anchor': 'center',
+        'icon-allow-overlap': true
+      },
+    });
+
     // Add unclustered markers
     map.current.addLayer({
       id: 'unclustered-point-marker',
@@ -262,7 +290,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'icon-opacity': [
           'case',
           ['boolean', ['feature-state', 'hover'], false],
-          0.5, 
+          0, 
           1   
         ],
       },
