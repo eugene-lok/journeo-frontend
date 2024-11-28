@@ -107,6 +107,8 @@ const Map = ({ places, routes, mapLoading }) => {
       }
     });
 
+    let hoveredFeatureId = null;
+
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
@@ -256,6 +258,14 @@ const Map = ({ places, routes, mapLoading }) => {
         'icon-anchor': 'center',
         'icon-allow-overlap': true
       },
+      paint: {
+        'icon-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          0.5, 
+          1   
+        ],
+      },
     });
 
     // Add cluster layer
@@ -288,6 +298,39 @@ const Map = ({ places, routes, mapLoading }) => {
         "text-allow-overlap": true
       },
     });
+
+    // Mouse enter event
+    map.current.on('mouseenter', 'unclustered-point-marker', (e) => {
+      if (e.features.length > 0) {
+        map.current.getCanvas().style.cursor = 'pointer';
+    
+        // Store the hovered feature's ID
+        hoveredFeatureId = e.features[0].id;
+    
+        // Set hover state to true
+        map.current.setFeatureState(
+          { source: 'places', id: hoveredFeatureId },
+          { hover: true }
+        );
+      }
+    });
+    
+    // Mouse leave event
+    map.current.on('mouseleave', 'unclustered-point-marker', () => {
+      if (hoveredFeatureId !== null) {
+        map.current.getCanvas().style.cursor = '';
+    
+        // Set hover state to false
+        map.current.setFeatureState(
+          { source: 'places', id: hoveredFeatureId },
+          { hover: false }
+        );
+    
+        // Reset the hovered feature ID
+        hoveredFeatureId = null;
+      }
+    });
+    
 
     // Initialize a single popup instance using a ref
     if (!popupRef.current) {
@@ -410,6 +453,8 @@ const Map = ({ places, routes, mapLoading }) => {
       map.current.off('mouseenter', 'clusters');
       map.current.off('mouseleave', 'clusters');
       map.current.off('click', 'clusters');
+      map.current.off('mouseenter', 'unclustered-point-marker');
+      map.current.off('mouseleave', 'unclustered-point-marker');
     };
   }, [mapLoading, places, routes]);
 
