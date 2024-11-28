@@ -35,11 +35,11 @@ const Popup = ({ properties }) => {
   })();
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md max-w-xs">
+    <div className="p-4 font-sans bg-white rounded-lg shadow-md max-w-xs">
       <h2 className="text-lg font-semibold mb-1">Location {index || 'N/A'}</h2>
       <h3 className="text-sm font-medium">{name || 'N/A'}</h3>
       {primaryTypeDisplayNameText?.text && (
-        <p className="text-xs mt-1 font-bold text-emerald-900">
+        <p className="text-xs mt-1 font-bold text-gray-700">
           {primaryTypeDisplayNameText.text}
         </p>
       )}

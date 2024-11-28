@@ -13,7 +13,7 @@ function App() {
   const [showItinerary, setShowItinerary] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 font-roboto">
       <Navbar />
       <div className="flex-grow relative flex w-full overflow-hidden ">
         {/* Chat Component */}

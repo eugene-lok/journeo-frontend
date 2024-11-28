@@ -92,7 +92,7 @@ const Map = ({ places, routes, mapLoading }) => {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/outdoors-v12',
+      style: 'mapbox://styles/mapbox/light-v11',
       center: initialCoordinates,
       zoom: 10,
     });
@@ -151,11 +151,11 @@ const Map = ({ places, routes, mapLoading }) => {
     // Remove all layers
     const layersToRemove = [
       'airport-route',
-      'routes-layer',
       'clusters',
       'cluster-count',
       'unclustered-point-airport',
-      'unclustered-point-marker'
+      'unclustered-point-marker',
+      'routes-layer'
     ];
 
     layersToRemove.forEach(layerId => {
@@ -211,10 +211,49 @@ const Map = ({ places, routes, mapLoading }) => {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 5,
+      clusterMaxZoom: 10,
       clusterRadius: 2,
       generatedId: true
     });
+
+    // Add routes to map
+    if (routes.length > 0) {
+      // Convert routes to GeoJSON FeatureCollection
+      const routesGeoJSON = {
+        type: 'FeatureCollection',
+        features: routes.map((route) => ({
+          type: 'Feature',
+          geometry: route.route, 
+          properties: {
+            from: route.from.name,
+            to: route.to.name,
+          },
+        })),
+      };
+
+      console.log('Routes GeoJSON:', routesGeoJSON);
+
+      // Add routes source
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: routesGeoJSON,
+      });
+
+      // Add routes layer
+      map.current.addLayer({
+        id: 'routes-layer', 
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#007AFF',
+          'line-width': 4
+        },
+      });
+    } 
 
     // Add cluster layer
     map.current.addLayer({
@@ -223,12 +262,12 @@ const Map = ({ places, routes, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#FF2E39',
+        'circle-color': '#86efac',
         'circle-radius': 20,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#d4d4d8',
       },
-    });
+    },'routes-layer');
 
     // Add cluster count labels
     map.current.addLayer({
@@ -242,7 +281,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'text-size': 14,
         'text-color': '#ffffff',
       },
-    });
+    },'routes-layer');
 
     // Only add if there are enough airports to display a route
     const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
@@ -293,7 +332,7 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'airport-icon', 
-        'icon-size': 0.07,
+        'icon-size': 0.03,
         'icon-anchor': 'center',
       },
     });
@@ -306,7 +345,7 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'marker-icon', 
-        'icon-size': 0.1, 
+        'icon-size': 0.06, 
         'icon-anchor': 'center',
       },
     });
@@ -408,45 +447,6 @@ const Map = ({ places, routes, mapLoading }) => {
         });
       });
     });
-
-    // Add routes to map
-    if (routes.length > 0) {
-      // Convert routes to GeoJSON FeatureCollection
-      const routesGeoJSON = {
-        type: 'FeatureCollection',
-        features: routes.map((route) => ({
-          type: 'Feature',
-          geometry: route.route, 
-          properties: {
-            from: route.from.name,
-            to: route.to.name,
-          },
-        })),
-      };
-
-      console.log('Routes GeoJSON:', routesGeoJSON);
-
-      // Add routes source
-      map.current.addSource('routes', {
-        type: 'geojson',
-        data: routesGeoJSON,
-      });
-
-      // Add routes layer
-      map.current.addLayer({
-        id: 'routes-layer', 
-        type: 'line',
-        source: 'routes',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#007AFF',
-          'line-width': 4
-        },
-      });
-    } 
 
     // Fit map to points
     const bounds = new mapboxgl.LngLatBounds();
