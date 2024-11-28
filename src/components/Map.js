@@ -5,8 +5,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import Popup from './Popup';
 
 // Icons
-import airportIcon from './../icons/airplane.png'; 
-import markerIcon from './../icons/marker.png';   
+import airportIcon from './../icons/airport.png'; 
+import placeIcon from './../icons/place.png';
+  
 
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
@@ -23,7 +24,7 @@ const Map = ({ places, routes, mapLoading }) => {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: 'mapbox://styles/mapbox/dark-v11',
       center: initialCoordinates,
       zoom: 10,
     });
@@ -47,7 +48,7 @@ const Map = ({ places, routes, mapLoading }) => {
 
       // Load marker icon
       if (!map.current.hasImage('marker-icon')) {
-        map.current.loadImage(markerIcon, (error, image) => {
+        map.current.loadImage(placeIcon, (error, image) => {
           if (error) {
             console.error('Error loading marker icon:', error);
             return;
@@ -143,7 +144,7 @@ const Map = ({ places, routes, mapLoading }) => {
       data: geojson,
       cluster: true,
       clusterMaxZoom: 10,
-      clusterRadius: 2,
+      clusterRadius: 8,
       generatedId: true
     });
 
@@ -186,34 +187,6 @@ const Map = ({ places, routes, mapLoading }) => {
       });
     } 
 
-    // Add cluster layer
-    map.current.addLayer({
-      id: 'clusters',
-      type: 'circle',
-      source: 'places',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': '#86efac',
-        'circle-radius': 20,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#d4d4d8',
-      },
-    },'routes-layer');
-
-    // Add cluster count labels
-    map.current.addLayer({
-      id: 'cluster-count',
-      type: 'symbol',
-      source: 'places',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 14,
-        'text-color': '#ffffff',
-      },
-    },'routes-layer');
-
     // Only add if there are enough airports to display a route
     const airportPlaces = places.filter(place => place.isAirport);
     if (airportPlaces.length > 1) {
@@ -248,8 +221,8 @@ const Map = ({ places, routes, mapLoading }) => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#000000',
-          'line-width': 6,
+          'line-color': '#EEEEEE',
+          'line-width': 5,
           'line-dasharray': [2, 6], 
         },
       });
@@ -263,7 +236,7 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'airport-icon', 
-        'icon-size': 0.03,
+        'icon-size': 0.4,
         'icon-anchor': 'center',
       },
     });
@@ -276,8 +249,36 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'marker-icon', 
-        'icon-size': 0.06, 
+        'icon-size': 0.4, 
         'icon-anchor': 'center',
+      },
+    });
+
+    // Add cluster layer
+    map.current.addLayer({
+      id: 'clusters',
+      type: 'circle',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#34d399',
+        'circle-radius': 20,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#d4d4d8',
+      },
+    });
+
+    // Add cluster count labels
+    map.current.addLayer({
+      id: 'cluster-count',
+      type: 'symbol',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 14,
+        'text-color': '#ffffff',
       },
     });
 
