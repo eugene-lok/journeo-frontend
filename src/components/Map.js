@@ -112,6 +112,7 @@ const Map = ({ places, routes, mapLoading }) => {
       type: 'FeatureCollection',
       features: places.map((place, index) => ({
         type: 'Feature',
+        id: index,
         geometry: {
           type: 'Point',
           coordinates: [
@@ -134,6 +135,7 @@ const Map = ({ places, routes, mapLoading }) => {
           phone: place.details ? place.details.nationalPhoneNumber : 'N/A',
         },
       })),
+      promoteId:'id'
     };
 
     console.log('GeoJSON:', geojson);
@@ -238,6 +240,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'icon-image': 'airport-icon', 
         'icon-size': 0.4,
         'icon-anchor': 'center',
+        'icon-allow-overlap': true
       },
     });
 
@@ -251,6 +254,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'icon-image': 'marker-icon', 
         'icon-size': 0.4, 
         'icon-anchor': 'center',
+        'icon-allow-overlap': true
       },
     });
 
@@ -266,6 +270,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'circle-stroke-width': 2,
         'circle-stroke-color': '#d4d4d8',
       },
+
     });
 
     // Add cluster count labels
@@ -279,6 +284,8 @@ const Map = ({ places, routes, mapLoading }) => {
         'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
         'text-size': 14,
         'text-color': '#ffffff',
+        'icon-allow-overlap': true,
+        "text-allow-overlap": true
       },
     });
 
@@ -309,7 +316,7 @@ const Map = ({ places, routes, mapLoading }) => {
       }
 
       const properties = feature.properties;
-
+      console.log('Clicked Feature:', feature);
       console.log('Clicked Feature Properties:', properties);
 
       // Get coordinates
