@@ -26,11 +26,9 @@ body, html {
 .mapboxgl-popup-content h2{
   font-weight: bold
 }
-;
-
-.mapboxgl-popup {
-  @apply bg-green-500 rounded-md shadow-lg;
-} 
+;.mapboxgl-map {
+  @apply font-roboto
+}
 
 .mapboxgl-popup-content {
   @apply px-0 py-0;
