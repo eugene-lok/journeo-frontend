@@ -31,5 +31,12 @@ body, html {
 }
 
 .mapboxgl-popup-content {
+  border-radius: 0.5rem;
   @apply px-0 py-0;
+}
+
+.mapboxgl-popup-close-button {
+  padding-top: 2px;
+  padding-right: 4px;
+  font-size: 20px;
 }
