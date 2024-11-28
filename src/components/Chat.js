@@ -16,9 +16,9 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
     }, [messages]);
     
     // Production URL
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    //const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     // Local URL
-    //const API_BASE_URL = 'http://127.0.0.1:8000';
+    const API_BASE_URL = 'http://127.0.0.1:8000';
 
     // Handle user input submission
     const handleSend = async () => {
@@ -135,7 +135,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
 
   
     return (
-      <div className="flex flex-col h-full p-6 bg-gray-100">
+      <div className="flex flex-col h-full px-6 py-4 bg-gray-100">
         <div className="flex-grow overflow-y-auto flex flex-col space-y-2">
           {renderMessages()}
           <div ref={chatEndRef} /> 

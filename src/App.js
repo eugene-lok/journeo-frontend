@@ -15,9 +15,9 @@ function App() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <Navbar />
-      <div className="flex-grow relative flex w-full overflow-hidden">
+      <div className="flex-grow relative flex w-full overflow-hidden ">
         {/* Chat Component */}
-        <div className="w-1/3 h-full bg-gray-100 z-10">
+        <div className="w-1/3 h-full bg-gray-100 z-10 rounded-lg">
           <div className="h-full bg-white shadow-lg overflow-y-auto">
             <Chat
               setMapLoading={setMapLoading}
@@ -39,15 +39,16 @@ function App() {
           />
 
           {showItinerary && (
-            <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto">
-              <div className="p-4 h-full flex flex-col">
-                <button
-                  className="mb-4 text-blue-500 absolute top-6 left-8"
+            <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto rounded-lg">
+              <button
+                  className="absolute top-4 left-4 text-blue-500 py-2 px-4 rounded-lg z-30"
                   onClick={() => setShowItinerary(false)}
                 >
                   Close Itinerary
                 </button>
-                <div className="flex-grow">
+              <div className="p-2 h-full flex flex-col">
+                <div className="flex-grow p-2 rounded-lg">
+                
                   <Itinerary
                     itineraryData={itineraryData}
                     itineraryLoading={itineraryLoading}

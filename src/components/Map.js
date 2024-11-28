@@ -211,8 +211,8 @@ const Map = ({ places, routes, mapLoading }) => {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 9,
-      clusterRadius: 20,
+      clusterMaxZoom: 5,
+      clusterRadius: 2,
       generatedId: true
     });
 
@@ -283,46 +283,7 @@ const Map = ({ places, routes, mapLoading }) => {
           'line-dasharray': [2, 6], 
         },
       });
-    }
-
-    // Add routes to map
-    if (routes.length > 0) {
-      // Convert routes to GeoJSON FeatureCollection
-      const routesGeoJSON = {
-        type: 'FeatureCollection',
-        features: routes.map((route) => ({
-          type: 'Feature',
-          geometry: route.route, 
-          properties: {
-            from: route.from.name,
-            to: route.to.name,
-          },
-        })),
-      };
-
-      console.log('Routes GeoJSON:', routesGeoJSON);
-
-      // Add routes source
-      map.current.addSource('routes', {
-        type: 'geojson',
-        data: routesGeoJSON,
-      });
-
-      // Add routes layer
-      map.current.addLayer({
-        id: 'routes-layer', 
-        type: 'line',
-        source: 'routes',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#007AFF',
-          'line-width': 4
-        },
-      });
-    }  
+    } 
 
     // Add unclustered airports
     map.current.addLayer({
@@ -447,6 +408,45 @@ const Map = ({ places, routes, mapLoading }) => {
         });
       });
     });
+
+    // Add routes to map
+    if (routes.length > 0) {
+      // Convert routes to GeoJSON FeatureCollection
+      const routesGeoJSON = {
+        type: 'FeatureCollection',
+        features: routes.map((route) => ({
+          type: 'Feature',
+          geometry: route.route, 
+          properties: {
+            from: route.from.name,
+            to: route.to.name,
+          },
+        })),
+      };
+
+      console.log('Routes GeoJSON:', routesGeoJSON);
+
+      // Add routes source
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: routesGeoJSON,
+      });
+
+      // Add routes layer
+      map.current.addLayer({
+        id: 'routes-layer', 
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#007AFF',
+          'line-width': 4
+        },
+      });
+    } 
 
     // Fit map to points
     const bounds = new mapboxgl.LngLatBounds();
