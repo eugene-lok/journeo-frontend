@@ -83,7 +83,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         <div
           key={index}
           className={`p-2 rounded-lg my-2 ${
-            msg.sender === 'user' ? 'bg-emerald-500 text-white self-end' : 'bg-zinc-800 text-black self-start'
+            msg.sender === 'user' ? 'bg-teal-500 text-zinc-200 self-end' : 'bg-material-300 text-zinc-200 self-start'
           }`}
         >
           {parseMarkdown(msg.text)}
@@ -135,7 +135,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
 
   
     return (
-      <div className="flex flex-col h-full px-6 py-4 bg-gray-100">
+      <div className="flex flex-col h-full px-6 py-4 bg-material-200">
         <div className="flex-grow overflow-y-auto flex flex-col space-y-2">
           {renderMessages()}
           <div ref={chatEndRef} /> 
@@ -144,7 +144,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
         <div className="mt-4 flex">
           <input
             type="text"
-            className="flex-grow p-2 border rounded-l-lg"
+            className="flex-grow p-2 bg-material-400 rounded-l-lg placeholder-gray-200 text-gray-100"
             placeholder="Send message"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -152,7 +152,7 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
           />
           <button
             onClick={handleSend}
-            className="p-2 bg-emerald-500 text-white rounded-r-lg hover:bg-emerald-700"
+            className="p-2 bg-teal-500 text-white rounded-r-lg hover:bg-teal-700"
             disabled={isLoading}
           >
             {isLoading ? 'Sending' : 'Send'}

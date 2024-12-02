@@ -13,7 +13,7 @@ function App() {
   const [showItinerary, setShowItinerary] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 font-roboto">
+    <div className="flex flex-col h-screen bg-material-100 font-roboto">
       <Navbar />
       <div className="flex-grow relative flex w-full overflow-hidden ">
         {/* Chat Component */}
@@ -39,7 +39,7 @@ function App() {
           />
 
           {showItinerary && (
-            <div className="absolute top-0 left-0 h-full w-1/3 bg-white shadow-lg z-20 overflow-auto rounded-lg">
+            <div className="absolute top-0 left-0 h-full w-1/3 bg-material-400 shadow-lg z-20 overflow-auto rounded-lg">
               <button
                   className="absolute top-4 left-4 text-blue-500 py-2 px-4 rounded-lg z-30"
                   onClick={() => setShowItinerary(false)}
@@ -60,7 +60,7 @@ function App() {
 
           {!showItinerary && (
             <button
-              className="absolute top-4 left-4 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg shadow-md z-30"
+              className="absolute top-4 left-4 bg-teal-400 hover:bg-teal-600 text-white py-2 px-4 rounded-lg shadow-md z-30"
               onClick={() => setShowItinerary(true)}
             >
               Show Itinerary

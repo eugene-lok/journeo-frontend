@@ -213,7 +213,7 @@ const Map = ({ places, routes, mapLoading }) => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#007AFF',
+          'line-color': '#2673A6',
           'line-width': 4
         },
       });
@@ -340,7 +340,7 @@ const Map = ({ places, routes, mapLoading }) => {
       source: 'places',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#34d399',
+        'circle-color': '#26A659',
         'circle-radius': 20,
         'circle-stroke-width': 2,
         'circle-stroke-color': '#d4d4d8',
@@ -531,7 +531,7 @@ const Map = ({ places, routes, mapLoading }) => {
       {/* Spinner overlay */}
       {mapLoading && (
         <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-70 z-10">
-          <div className="animate-spin h-20 w-20 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-20 w-20 border-4 border-teal-500 border-t-transparent rounded-full"></div>
         </div>
       )}
     </div>
