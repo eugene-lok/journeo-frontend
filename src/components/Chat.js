@@ -86,54 +86,10 @@ const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItinerary
             msg.sender === 'user' ? 'bg-teal-500 text-zinc-200 self-end' : 'bg-material-300 text-zinc-200 self-start'
           }`}
         >
-          {parseMarkdown(msg.text)}
+          {msg.text}
         </div>
       ));
-
-    // Helper function to parse markdown in messages
-    const parseMarkdown = (text) => {
-  // Split the text by newline
-  const lines = text.split('\n');
-  
-  return lines.map((line, index) => {
-    // Parse bold markdown
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    if (boldRegex.test(line)) {
-      const parts = line.split(boldRegex);
-      return (
-        <p key={index} className="text-white">
-          {parts.map((part, i) => 
-            i % 2 === 1 ? <span key={i} className="font-bold">{part}</span> : part
-          )}
-        </p>
-      );
-    }
-
-    // Parse horizontal rule
-    if (line.startsWith('---')) {
-      return <hr key={index} className="border-t border-gray-300 my-4" />;
-    }
-
-    // Parse bullet points
-    if (line.startsWith('-')) {
-      return (
-        <li key={index} className="ml-4 mb-2 text-white list-disc">
-          {line.replace(/^- /, '').trim()}
-        </li>
-      );
-    }
-
-    // Parse remaining lines
-    return (
-      <p key={index} className=" text-white self-end">
-        {line.trim()}
-      </p>
-    );
-  });
-};
-
-
-  
+ 
     return (
       <div className="flex flex-col h-full px-6 py-4 bg-material-200">
         <div className="flex-grow overflow-y-auto flex flex-col space-y-2">
