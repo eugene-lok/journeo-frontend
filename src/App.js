@@ -37,7 +37,7 @@ function App() {
           <div className="px-4 py-3 bg-zinc-900 border-b border-zinc-700 flex justify-between items-center">
             <button
               onClick={() => setShowItinerary(!showItinerary)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 showItinerary 
                 ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700' 
                 : 'bg-teal-500 text-white hover:bg-teal-600'
@@ -72,10 +72,10 @@ function App() {
               }`}
             >
               <div className="h-full p-4">
-                <Itinerary
+                {/* <Itinerary
                   itineraryData={itineraryData}
                   itineraryLoading={itineraryLoading}
-                />
+                /> */}
               </div>
             </div>
           </div>
