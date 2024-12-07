@@ -5,80 +5,14 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import Popup from './Popup';
 
 // Icons
-import airportIcon from './../icons/airplane.png'; 
-import markerIcon from './../icons/marker.png';   
-
-
+import airportIcon from './../icons/airport.png'; 
+import placeIcon from './../icons/place.png';
+import placeIconHover from './../icons/placeHover.png';
+import airportIconHover from './../icons/airportHover.png';
+  
 
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
-
-// Moves a point a set distance using spherical trig 
-const movePoint = (lat, lon, distance, bearing) => {
-  // Earth's radius (m)
-  const R = 6378137; 
-  // Angular distance 
-  const delta = distance / R; 
-  // Bearing in radians
-  const theta = (bearing * Math.PI) / 180; 
-
-  // Convert lat, lon to radians
-  const lat1 = (lat * Math.PI) / 180;
-  const lon1 = (lon * Math.PI) / 180; 
-
-  // Calculate shift in lat and lon 
-  const sinLat1 = Math.sin(lat1);
-  const cosLat1 = Math.cos(lat1);
-  const sinDelta = Math.sin(delta);
-  const cosDelta = Math.cos(delta);
-
-  const sinLat2 = sinLat1 * cosDelta + cosLat1 * sinDelta * Math.cos(theta);
-  const lat2 = Math.asin(sinLat2);
-
-  const y = Math.sin(theta) * sinDelta * cosLat1;
-  const x = cosDelta - sinLat1 * sinLat2;
-  const lon2 = lon1 + Math.atan2(y, x);
-
-  // Convert back to degrees
-  const newLat = (lat2 * 180) / Math.PI;
-  const newLon = (lon2 * 180) / Math.PI;
-
-  return { lat: newLat, lon: newLon };
-};
-
-// Adjusts duplicates coordinates by moving them 20m, scaling with latitude
-const adjustDuplicates = (places) => {
-  const coordMap = {};
-  const adjustedPlaces = [...places]; 
-
-  for (let i = 0; i < adjustedPlaces.length; i++) {
-    const place = adjustedPlaces[i];
-    const lat = Number(place.coordinates.latitude);
-    const lon = Number(place.coordinates.longitude);
-    const key = `${lat.toFixed(6)},${lon.toFixed(6)}`; 
-
-    if (coordMap[key]) {
-      const count = coordMap[key];
-
-      // Generate random bearing 
-      const bearing = Math.random() * 360;
-
-      // Increase distance for each duplicate 
-      const distance = 20 + (count - 1) * 0.5; 
-
-      // Update place coordinates
-      const newCoord = movePoint(lat, lon, distance, bearing);      
-      adjustedPlaces[i].coordinates.latitude = newCoord.lat;
-      adjustedPlaces[i].coordinates.longitude = newCoord.lon;
-
-      coordMap[key] += 1;
-    } else {
-      coordMap[key] = 1;
-    }
-  }
-
-  return adjustedPlaces;
-};
 
 const Map = ({ places, routes, mapLoading }) => {
   const mapContainer = useRef(null);
@@ -92,7 +26,7 @@ const Map = ({ places, routes, mapLoading }) => {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/outdoors-v12',
+      style: 'mapbox://styles/mapbox/dark-v11',
       center: initialCoordinates,
       zoom: 10,
     });
@@ -116,13 +50,37 @@ const Map = ({ places, routes, mapLoading }) => {
 
       // Load marker icon
       if (!map.current.hasImage('marker-icon')) {
-        map.current.loadImage(markerIcon, (error, image) => {
+        map.current.loadImage(placeIcon, (error, image) => {
           if (error) {
             console.error('Error loading marker icon:', error);
             return;
           }
           map.current.addImage('marker-icon', image);
           console.log('Marker icon loaded');
+        });
+      }
+
+      // Load marker hover icon
+      if (!map.current.hasImage('marker-icon-hover')) {
+        map.current.loadImage(placeIconHover, (error, image) => {
+          if (error) {
+            console.error('Error loading marker hover icon:', error);
+            return;
+          }
+          map.current.addImage('marker-icon-hover', image);
+          console.log('Marker icon hover loaded');
+        });
+      }
+
+      // Load airport hover icon
+      if (!map.current.hasImage('airport-icon-hover')) {
+        map.current.loadImage(airportIconHover, (error, image) => {
+          if (error) {
+            console.error('Error loading airport hover icon:', error);
+            return;
+          }
+          map.current.addImage('airport-icon-hover', image);
+          console.log('Airport icon hover loaded');
         });
       }
     });
@@ -133,7 +91,7 @@ const Map = ({ places, routes, mapLoading }) => {
     if (mapLoading || !places.length) return;
 
     // Adjust duplicates before processing
-    const adjustedPlaces = adjustDuplicates(places).filter(place => {
+    /* const adjustedPlaces = adjustDuplicates(places).filter(place => {
       const lng = Number(place.coordinates.longitude);
       const lat = Number(place.coordinates.latitude);
       return (
@@ -144,18 +102,20 @@ const Map = ({ places, routes, mapLoading }) => {
         lat >= -90 &&
         lat <= 90
       );
-    });
+    }); */
 
-    console.log('Adjusted Places:', adjustedPlaces);
+    //console.log('Adjusted Places:', adjustedPlaces);
 
     // Remove all layers
     const layersToRemove = [
       'airport-route',
-      'routes-layer',
       'clusters',
       'cluster-count',
       'unclustered-point-airport',
-      'unclustered-point-marker'
+      'unclustered-point-airport-hover',
+      'unclustered-point-marker',
+      'unclustered-point-marker-hover',
+      'routes-layer'
     ];
 
     layersToRemove.forEach(layerId => {
@@ -175,11 +135,14 @@ const Map = ({ places, routes, mapLoading }) => {
       }
     });
 
+    let hoveredFeatureId = null;
+
     // Convert places to GeoJSON
     const geojson = {
       type: 'FeatureCollection',
-      features: adjustedPlaces.map((place, index) => ({
+      features: places.map((place, index) => ({
         type: 'Feature',
+        id: index,
         geometry: {
           type: 'Point',
           coordinates: [
@@ -202,6 +165,7 @@ const Map = ({ places, routes, mapLoading }) => {
           phone: place.details ? place.details.nationalPhoneNumber : 'N/A',
         },
       })),
+      promoteId:'id'
     };
 
     console.log('GeoJSON:', geojson);
@@ -211,79 +175,10 @@ const Map = ({ places, routes, mapLoading }) => {
       type: 'geojson',
       data: geojson,
       cluster: true,
-      clusterMaxZoom: 9,
-      clusterRadius: 20,
+      clusterMaxZoom: 10,
+      clusterRadius: 8,
       generatedId: true
     });
-
-    // Add cluster layer
-    map.current.addLayer({
-      id: 'clusters',
-      type: 'circle',
-      source: 'places',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': '#FF2E39',
-        'circle-radius': 20,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff',
-      },
-    });
-
-    // Add cluster count labels
-    map.current.addLayer({
-      id: 'cluster-count',
-      type: 'symbol',
-      source: 'places',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 14,
-        'text-color': '#ffffff',
-      },
-    });
-
-    // Only add if there are enough airports to display a route
-    const airportPlaces = adjustedPlaces.filter(place => place.isAirport);
-    if (airportPlaces.length > 1) {
-      const airportRouteCoordinates = airportPlaces.map(place => [
-        Number(place.coordinates.longitude),
-        Number(place.coordinates.latitude),
-      ]);
-
-      console.log('Airport Route Coordinates:', airportRouteCoordinates);
-
-      const routeGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: airportRouteCoordinates,
-        },
-      };
-
-      // Add airport route source
-      map.current.addSource('route', {
-        type: 'geojson',
-        data: routeGeoJSON,
-      });
-
-      // Add airport route layer
-      map.current.addLayer({
-        id: 'airport-route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#000000',
-          'line-width': 6,
-          'line-dasharray': [2, 6], 
-        },
-      });
-    }
 
     // Add routes to map
     if (routes.length > 0) {
@@ -318,11 +213,66 @@ const Map = ({ places, routes, mapLoading }) => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#007AFF',
+          'line-color': '#2673A6',
           'line-width': 4
         },
       });
-    }  
+    } 
+
+    // Only add if there are enough airports to display a route
+    const airportPlaces = places.filter(place => place.isAirport);
+    if (airportPlaces.length > 1) {
+      const airportRouteCoordinates = airportPlaces.map(place => [
+        Number(place.coordinates.longitude),
+        Number(place.coordinates.latitude),
+      ]);
+
+      console.log('Airport Route Coordinates:', airportRouteCoordinates);
+
+      const routeGeoJSON = {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: airportRouteCoordinates,
+        },
+      };
+
+      // Add airport route source
+      map.current.addSource('route', {
+        type: 'geojson',
+        data: routeGeoJSON,
+      });
+
+      // Add airport route layer
+      map.current.addLayer({
+        id: 'airport-route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#EEEEEE',
+          'line-width': 5,
+          'line-dasharray': [2, 6], 
+        },
+      });
+    } 
+
+    // Add unclustered airport hover markers
+    map.current.addLayer({
+      id: 'unclustered-point-airport-hover',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'airport-icon-hover', 
+        'icon-size': 0.4, 
+        'icon-anchor': 'center',
+        'icon-allow-overlap': true
+      },
+    });
 
     // Add unclustered airports
     map.current.addLayer({
@@ -332,8 +282,32 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['!=', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'airport-icon', 
-        'icon-size': 0.07,
+        'icon-size': 0.4,
         'icon-anchor': 'center',
+        'icon-allow-overlap': true
+      },
+      paint: {
+        'icon-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          0, 
+          1   
+        ],
+      },
+    });
+
+  
+     // Add unclustered hover markers
+     map.current.addLayer({
+      id: 'unclustered-point-marker-hover',
+      type: 'symbol',
+      source: 'places',
+      filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
+      layout: {
+        'icon-image': 'marker-icon-hover', 
+        'icon-size': 0.4, 
+        'icon-anchor': 'center',
+        'icon-allow-overlap': true
       },
     });
 
@@ -345,10 +319,83 @@ const Map = ({ places, routes, mapLoading }) => {
       filter: ['all', ['==', ['get', 'isAirport'], false], ['!', ['has', 'point_count']]],
       layout: {
         'icon-image': 'marker-icon', 
-        'icon-size': 0.1, 
+        'icon-size': 0.4, 
         'icon-anchor': 'center',
+        'icon-allow-overlap': true
+      },
+      paint: {
+        'icon-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          0, 
+          1   
+        ],
       },
     });
+
+    // Add cluster layer
+    map.current.addLayer({
+      id: 'clusters',
+      type: 'circle',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#26A659',
+        'circle-radius': 20,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#d4d4d8',
+      },
+
+    });
+
+    // Add cluster count labels
+    map.current.addLayer({
+      id: 'cluster-count',
+      type: 'symbol',
+      source: 'places',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 14,
+        'text-color': '#ffffff',
+        'icon-allow-overlap': true,
+        "text-allow-overlap": true
+      },
+    });
+
+    // Mouse enter event
+    map.current.on('mouseenter', ['unclustered-point-marker','unclustered-point-airport'], (e) => {
+      if (e.features.length > 0) {
+        map.current.getCanvas().style.cursor = 'pointer';
+    
+        // Store the hovered feature's ID
+        hoveredFeatureId = e.features[0].id;
+    
+        // Set hover state to true
+        map.current.setFeatureState(
+          { source: 'places', id: hoveredFeatureId },
+          { hover: true }
+        );
+      }
+    });
+    
+    // Mouse leave event
+    map.current.on('mouseleave', ['unclustered-point-marker','unclustered-point-airport'], () => {
+      if (hoveredFeatureId !== null) {
+        map.current.getCanvas().style.cursor = '';
+    
+        // Set hover state to false
+        map.current.setFeatureState(
+          { source: 'places', id: hoveredFeatureId },
+          { hover: false }
+        );
+    
+        // Reset the hovered feature ID
+        hoveredFeatureId = null;
+      }
+    });
+    
 
     // Initialize a single popup instance using a ref
     if (!popupRef.current) {
@@ -377,7 +424,7 @@ const Map = ({ places, routes, mapLoading }) => {
       }
 
       const properties = feature.properties;
-
+      console.log('Clicked Feature:', feature);
       console.log('Clicked Feature Properties:', properties);
 
       // Get coordinates
@@ -450,7 +497,7 @@ const Map = ({ places, routes, mapLoading }) => {
 
     // Fit map to points
     const bounds = new mapboxgl.LngLatBounds();
-    adjustedPlaces.forEach((place) => {
+    places.forEach((place) => {
       const lng = Number(place.coordinates.longitude);
       const lat = Number(place.coordinates.latitude);
       if (!isNaN(lng) && !isNaN(lat)) {
@@ -458,7 +505,7 @@ const Map = ({ places, routes, mapLoading }) => {
       }
     });
 
-    if (adjustedPlaces.length > 0) {
+    if (places.length > 0) {
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 12,
@@ -471,6 +518,8 @@ const Map = ({ places, routes, mapLoading }) => {
       map.current.off('mouseenter', 'clusters');
       map.current.off('mouseleave', 'clusters');
       map.current.off('click', 'clusters');
+      map.current.off('mouseenter', ['unclustered-point-airport', 'unclustered-point-marker']);
+      map.current.off('mouseleave', ['unclustered-point-airport', 'unclustered-point-marker']);
     };
   }, [mapLoading, places, routes]);
 
@@ -482,7 +531,7 @@ const Map = ({ places, routes, mapLoading }) => {
       {/* Spinner overlay */}
       {mapLoading && (
         <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-70 z-10">
-          <div className="animate-spin h-20 w-20 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-20 w-20 border-4 border-teal-500 border-t-transparent rounded-full"></div>
         </div>
       )}
     </div>
