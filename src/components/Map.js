@@ -32,7 +32,7 @@ const Map = ({ places, routes, mapLoading }) => {
     });
 
     // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl());
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
     // Add the custom icons on map load
     map.current.on('load', () => {
