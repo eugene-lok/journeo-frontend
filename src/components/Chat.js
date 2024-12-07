@@ -14,7 +14,12 @@ const Chat = ({
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [isPreferencesComplete, setIsPreferencesComplete] = useState(false);
+  const [extractedEntities, setExtractedEntities] = useState({});
   const chatEndRef = useRef(null);
+
+  const API_BASE_URL = 'http://127.0.0.1:8000';
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,13 +29,75 @@ const Chat = ({
     scrollToBottom();
   }, [messages]);
 
-  const API_BASE_URL = 'http://127.0.0.1:8000';
+
+// Endpoint for entity extraction loop
+  const handlePreferenceExtraction = async (userInput) => {
+    try {
+      const requestBody = {
+        userInput: userInput,
+        ...(sessionId && { sessionId }) // Include sessionId if it exists
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/extract-preferences/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to extract preferences');
+      }
+
+      const data = await response.json();
+      
+      // Update session state
+      if (data.sessionId) {
+        setSessionId(data.sessionId);
+      }
+      
+      // Update preferences state
+      setExtractedEntities(data.extractedEntities);
+      setIsPreferencesComplete(data.isComplete);
+
+      // Add clarification message if not complete
+      if (!data.isComplete && data.clarificationMessage) {
+        const botMessage = { sender: 'bot', text: data.clarificationMessage };
+        setMessages(prev => [...prev, botMessage]);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in preference extraction:', error);
+      throw error;
+    }
+  };
+
+  // Endpoint for itinerary genration after entities extracted
+  const handleItineraryGeneration = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: JSON.stringify(extractedEntities) }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate itinerary');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error in itinerary generation:', error);
+      throw error;
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
 
     setIsLoading(true);
@@ -38,39 +105,34 @@ const Chat = ({
     setMapLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
-      });
+      // Handle preference extraction if first message or preferences incomplete
+      const preferencesData = await handlePreferenceExtraction(input.trim());
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch response');
-      }
+      console.log("Extracted Preferences: ", preferencesData)
+      // If preferences are complete, proceed with itinerary generation
+      if (preferencesData.isComplete) {
+        const itineraryData = await handleItineraryGeneration();
+        
+        if (itineraryData?.response?.itinerary) {
+          setItineraryData(itineraryData.response);
+          setLocationData({ places: itineraryData.response.places });
+          setRouteData({ routes: itineraryData.response.routes });
 
-      const data = await response.json();
-      if (typeof data?.response === 'string') {
-        const botMessage = { sender: 'bot', text: data.response };
-        setMessages((prev) => [...prev, botMessage]);
-      } else if (data.response?.itinerary) {
-        setItineraryData(data.response);
-        setLocationData({ places: data.response.places });
-        setRouteData({ routes: data.response.routes });
-
-        const completionMessage = {
-          sender: 'bot',
-          text: "Your itinerary has been generated. Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
-        };
-        setMessages((prev) => [...prev, completionMessage]);
-        setShowItinerary(true);
+          const completionMessage = {
+            sender: 'bot',
+            text: "Your itinerary has been generated. Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
+          };
+          setMessages(prev => [...prev, completionMessage]);
+          setShowItinerary(true);
+        }
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.error('Error:', error);
       const errorMessage = {
         sender: 'bot',
         text: 'Something went wrong. Please try again.'
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       setItineraryLoading(false);
@@ -113,6 +175,7 @@ const Chat = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              disabled={isLoading}
             />
             <button
               onClick={handleSend}
