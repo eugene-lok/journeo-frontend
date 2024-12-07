@@ -72,10 +72,10 @@ function App() {
               }`}
             >
               <div className="h-full p-4">
-                {/* <Itinerary
+                <Itinerary
                   itineraryData={itineraryData}
                   itineraryLoading={itineraryLoading}
-                /> */}
+                />
               </div>
             </div>
           </div>

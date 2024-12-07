@@ -343,7 +343,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'circle-color': '#26A659',
         'circle-radius': 20,
         'circle-stroke-width': 2,
-        'circle-stroke-color': '#d4d4d8',
+        'circle-stroke-color': '#f4f4f5',
       },
 
     });
@@ -358,7 +358,7 @@ const Map = ({ places, routes, mapLoading }) => {
         'text-field': '{point_count_abbreviated}',
         'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
         'text-size': 14,
-        'text-color': '#ffffff',
+        'text-color': '#f4f4f5',
         'icon-allow-overlap': true,
         "text-allow-overlap": true
       },

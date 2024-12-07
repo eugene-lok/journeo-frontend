@@ -108,11 +108,11 @@ const Chat = ({
       // Handle preference extraction if first message or preferences incomplete
       const preferencesData = await handlePreferenceExtraction(input.trim());
 
-      console.log("Extracted Preferences: ", preferencesData)
+      console.log("Extracted Preferences: ", preferencesData);
       // If preferences are complete, proceed with itinerary generation
       if (preferencesData.isComplete) {
         const itineraryData = await handleItineraryGeneration();
-        
+        console.log("Itinerary: ", itineraryData);
         if (itineraryData?.response?.itinerary) {
           setItineraryData(itineraryData.response);
           setLocationData({ places: itineraryData.response.places });
