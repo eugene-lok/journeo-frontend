@@ -7,7 +7,7 @@ import Popup from './Popup';
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
-const Map = ({ places, routes, mapLoading }) => {
+const Map = ({ places = [], routes = [], mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
@@ -27,9 +27,57 @@ const Map = ({ places, routes, mapLoading }) => {
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-left');
   }, []);
 
+  const clearMap = () => {
+    if (!map.current) return;
+
+    // Remove existing layers
+    const layersToRemove = [
+      'airport-route',
+      'markers',
+      'marker-labels',
+      'routes-layer'
+    ];
+
+    layersToRemove.forEach(layerId => {
+      if (map.current.getLayer(layerId)) {
+        map.current.removeLayer(layerId);
+      }
+    });
+
+    // Remove existing sources
+    ['route', 'routes', 'places'].forEach(sourceId => {
+      if (map.current.getSource(sourceId)) {
+        map.current.removeSource(sourceId);
+      }
+    });
+
+    // Remove any existing popups
+    if (popupRef.current) {
+      if (popupRef.current._popupRoot) {
+        popupRef.current._popupRoot.unmount();
+        delete popupRef.current._popupRoot;
+      }
+      popupRef.current.remove();
+    }
+
+    // Reset to initial view
+    map.current.flyTo({
+      center: [-114, 51],
+      zoom: 10,
+      bearing: 0,
+      pitch: 0
+    });
+  };
+
   // Add or update markers and routes
   useEffect(() => {
-    if (mapLoading || !places.length) return;
+    if (mapLoading) return;
+
+    // Clear existing map data
+    clearMap();
+
+    // If no places, don't add new data
+    if (!places?.length) return;
 
     // Remove existing layers and sources
     const layersToRemove = [
@@ -264,7 +312,7 @@ const Map = ({ places, routes, mapLoading }) => {
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
       {mapLoading && (
-        <div className="absolute inset-0 flex justify-center items-center bg-zinc-900 backdrop-blur-md z-10">
+        <div className="absolute inset-0 flex justify-center items-center bg-zinc-800/50 backdrop-blur-md z-10">
           <div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full"></div>
         </div>
       )}
