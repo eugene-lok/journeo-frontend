@@ -59,7 +59,7 @@ const Chat = ({
 
         const completionMessage = {
           sender: 'bot',
-          text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
+          text: "Your itinerary has been generated. Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
         };
         setMessages((prev) => [...prev, completionMessage]);
         setShowItinerary(true);
@@ -85,7 +85,7 @@ const Chat = ({
         className={`max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
           msg.sender === 'user'
             ? 'bg-teal-500 text-zinc-100 ml-auto rounded-br-sm'
-            : 'bg-zinc-700 text-zinc-100 mr-auto rounded-bl-sm'
+            : 'bg-zinc-800 text-zinc-100 mr-auto rounded-bl-sm'
         }`}
       >
         {msg.text}
@@ -93,19 +93,19 @@ const Chat = ({
     ));
 
   return (
-    <div className="flex flex-col h-full bg-zinc-800 rounded-lg shadow-lg">
+    <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
         <div className="flex-grow overflow-y-auto p-4 space-y-2">
           {renderMessages()}
           <div ref={chatEndRef} />
         </div>
 
-        <div className="border-t border-zinc-700 p-4 mt-auto">
+        <div className="border-t border-zinc-800 p-4 mt-auto">
           <div className="flex items-center gap-2">
             <input
               type="text"
-              className="flex-grow p-3 bg-zinc-700 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-              placeholder="Type your message..."
+              className="flex-grow p-3 bg-zinc-800 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              placeholder="Send message"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
