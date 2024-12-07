@@ -3,6 +3,7 @@ import Map from './components/Map';
 import Chat from './components/Chat';
 import Navbar from './components/Navbar';
 import Itinerary from './components/Itinerary';
+import { Layers, X } from 'lucide-react';
 
 function App() {
   const [itineraryData, setItineraryData] = useState(null);
@@ -13,12 +14,13 @@ function App() {
   const [showItinerary, setShowItinerary] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen bg-material-100 font-roboto">
+    <div className="flex flex-col h-screen bg-zinc-900">
       <Navbar />
-      <div className="flex-grow relative flex w-full overflow-hidden ">
-        {/* Chat Component */}
-        <div className="w-1/3 h-full bg-gray-100 z-10 rounded-lg">
-          <div className="h-full bg-white shadow-lg overflow-y-auto">
+      
+      <div className="flex-grow flex gap-4 p-4 overflow-hidden">
+        {/* Chat */}
+        <div className="w-1/3 flex flex-col">
+          <div className="flex-grow rounded-xl overflow-hidden shadow-lg">
             <Chat
               setMapLoading={setMapLoading}
               setItineraryLoading={setItineraryLoading}
@@ -30,42 +32,34 @@ function App() {
           </div>
         </div>
 
-        {/* Map Component */}
-        <div className="flex-1 relative h-full overflow-hidden">
-          <Map
-            places={locationData ? locationData.places : []}
-            routes={routeData ? routeData.routes : []}
-            mapLoading={mapLoading}
-          />
+        {/* Map */}
+        <div className="flex-1 flex flex-col rounded-xl bg-zinc-800 shadow-lg overflow-hidden">
+          <div className="px-4 py-3 bg-zinc-800 border-b border-zinc-700 flex justify-between items-center">
 
-          {showItinerary && (
-            <div className="absolute top-0 left-0 h-full w-1/3 bg-material-400 shadow-lg z-20 overflow-auto rounded-lg">
-              <button
-                  className="absolute top-4 left-4 text-blue-500 py-2 px-4 rounded-lg z-30"
-                  onClick={() => setShowItinerary(false)}
-                >
-                  Close Itinerary
-                </button>
-              <div className="p-2 h-full flex flex-col">
-                <div className="flex-grow p-2 rounded-lg">
-                
-                  <Itinerary
-                    itineraryData={itineraryData}
-                    itineraryLoading={itineraryLoading}
-                  />
-                </div>
+          </div>
+
+          {/* Map */}
+          <div className="flex-grow relative">
+            <Map
+              places={locationData ? locationData.places : []}
+              routes={routeData ? routeData.routes : []}
+              mapLoading={mapLoading}
+            />
+            
+            {/* Itinerary panel */}
+            <div 
+              className={`absolute top-0 right-0 h-full w-1/3 bg-zinc-800 shadow-lg transition-transform duration-300 ${
+                showItinerary ? 'translate-x-0' : 'translate-x-full'
+              }`}
+            >
+              <div className="h-full p-4">
+                <Itinerary
+                  itineraryData={itineraryData}
+                  itineraryLoading={itineraryLoading}
+                />
               </div>
             </div>
-          )}
-
-          {!showItinerary && (
-            <button
-              className="absolute top-4 left-4 bg-teal-400 hover:bg-teal-600 text-white py-2 px-4 rounded-lg shadow-md z-30"
-              onClick={() => setShowItinerary(true)}
-            >
-              Show Itinerary
-            </button>
-          )}
+          </div>
         </div>
       </div>
     </div>
