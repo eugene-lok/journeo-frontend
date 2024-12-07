@@ -1,121 +1,128 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData, setRouteData, setShowItinerary}) => {
-    const [messages, setMessages] = useState([
-      {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
-    ]); 
-    const [input, setInput] = useState(''); 
-    const [isLoading, setIsLoading] = useState(false); 
-    const chatEndRef = useRef(null); 
-  
-    const scrollToBottom = () => {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-  
-    useEffect(() => {
-      scrollToBottom();
-    }, [messages]);
-    
-    // Production URL
-    //const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-    // Local URL
-    const API_BASE_URL = 'http://127.0.0.1:8000';
+import { Send } from 'lucide-react';
 
-    // Handle user input submission
-    const handleSend = async () => {
-        if (!input.trim()) return;
-      
-        const userMessage = { sender: 'user', text: input };
-        setMessages((prev) => [...prev, userMessage]);
-        setInput('');
-      
-        setIsLoading(true);
-        setItineraryLoading(true);  // Start itinerary spinner
-        setMapLoading(true);  // Start map spinner
-      
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/chat/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input }),
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to fetch response');
-          }
-          
-          const data = await response.json();
-          console.log("data: ", data);
-          if (typeof data?.response === 'string') {
-            const botMessage = { sender: 'bot', text: data.response };
-            setMessages((prev) => [...prev, botMessage]);
-          }
-          // Set data and alternate chat message if itinerary recieved
-          else if (data.response.hasOwnProperty('itinerary')) {
-            setItineraryData(data.response); 
-            setLocationData({
-              places: data.response.places
-            });
-            setRouteData({
-              routes: data.response.routes
-            }) 
-            
-            const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."};
-            setMessages((prev) => [...prev, completionMessage]);
-            setShowItinerary(true); // Show itinerary
-          }
-          
-        } 
-        catch (error) {
-          console.log('Error:', error);
-          const errorMessage = { sender: 'bot', text: 'Something went wrong. Please try again.' };
-          setMessages((prev) => [...prev, errorMessage]);
-        } 
-        finally {
-          setIsLoading(false);
-          setItineraryLoading(false);  // Stop itinerary spinner
-          setMapLoading(false);  // Stop map spinner
-        }
-    };
-    
-    // Render chat messages
-    const renderMessages = () => 
-      messages.map((msg, index) => (
-        <div
-          key={index}
-          className={`p-2 rounded-lg my-2 ${
-            msg.sender === 'user' ? 'bg-teal-500 text-zinc-200 self-end' : 'bg-material-300 text-zinc-200 self-start'
-          }`}
-        >
-          {msg.text}
-        </div>
-      ));
- 
-    return (
-      <div className="flex flex-col h-full px-6 py-4 bg-material-200">
-        <div className="flex-grow overflow-y-auto flex flex-col space-y-2">
+const Chat = ({
+  setMapLoading,
+  setItineraryLoading,
+  setLocationData,
+  setItineraryData,
+  setRouteData,
+  setShowItinerary
+}) => {
+  const [messages, setMessages] = useState([
+    { sender: 'bot', text: 'Hi! How can I help you plan your trip today?' }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const API_BASE_URL = 'http://127.0.0.1:8000';
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = { sender: 'user', text: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+
+    setIsLoading(true);
+    setItineraryLoading(true);
+    setMapLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch response');
+      }
+
+      const data = await response.json();
+      if (typeof data?.response === 'string') {
+        const botMessage = { sender: 'bot', text: data.response };
+        setMessages((prev) => [...prev, botMessage]);
+      } else if (data.response?.itinerary) {
+        setItineraryData(data.response);
+        setLocationData({ places: data.response.places });
+        setRouteData({ routes: data.response.routes });
+
+        const completionMessage = {
+          sender: 'bot',
+          text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
+        };
+        setMessages((prev) => [...prev, completionMessage]);
+        setShowItinerary(true);
+      }
+    } catch (error) {
+      console.log('Error:', error);
+      const errorMessage = {
+        sender: 'bot',
+        text: 'Something went wrong. Please try again.'
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setItineraryLoading(false);
+      setMapLoading(false);
+    }
+  };
+
+  const renderMessages = () =>
+    messages.map((msg, index) => (
+      <div
+        key={index}
+        className={`max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
+          msg.sender === 'user'
+            ? 'bg-teal-500 text-zinc-100 ml-auto rounded-br-sm'
+            : 'bg-zinc-700 text-zinc-100 mr-auto rounded-bl-sm'
+        }`}
+      >
+        {msg.text}
+      </div>
+    ));
+
+  return (
+    <div className="flex flex-col h-full bg-zinc-800 rounded-lg shadow-lg">
+      <div className="flex flex-col h-full">
+        <div className="flex-grow overflow-y-auto p-4 space-y-2">
           {renderMessages()}
-          <div ref={chatEndRef} /> 
+          <div ref={chatEndRef} />
         </div>
-  
-        <div className="mt-4 flex">
-          <input
-            type="text"
-            className="flex-grow p-2 bg-material-400 rounded-l-lg placeholder-gray-200 text-gray-100"
-            placeholder="Send message"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-          />
-          <button
-            onClick={handleSend}
-            className="p-2 bg-teal-500 text-white rounded-r-lg hover:bg-teal-700"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Sending' : 'Send'}
-          </button>
+
+        <div className="border-t border-zinc-700 p-4 mt-auto">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              className="flex-grow p-3 bg-zinc-700 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              placeholder="Type your message..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            />
+            <button
+              onClick={handleSend}
+              disabled={isLoading}
+              className="p-3 bg-teal-500 text-zinc-100 rounded-full hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
+            >
+              <Send size={20} />
+            </button>
+          </div>
         </div>
       </div>
-    );
-  };
-  
-  export default Chat;
+    </div>
+  );
+};
+
+export default Chat;
