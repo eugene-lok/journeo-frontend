@@ -65,7 +65,7 @@ const Map = ({ places = [], routes = [], mapLoading }) => {
 
     // Reset to initial view
     map.current.flyTo({
-      center: [-114, 51],
+      center: [-74, 40.7],
       zoom: 10,
       bearing: 0,
       pitch: 0
