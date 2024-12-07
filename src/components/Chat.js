@@ -87,7 +87,7 @@ const Chat = ({
         <div
           className={`inline-block max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
             msg.sender === 'user'
-              ? 'bg-teal-500 text-zinc-100 rounded-br-sm text-right'
+              ? 'bg-teal-500 text-zinc-100 rounded-br-sm'
               : 'bg-zinc-800 text-zinc-100 rounded-bl-sm'
           }`}
         >
