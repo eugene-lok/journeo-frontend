@@ -388,7 +388,7 @@ const Chat = ({
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <button
           onClick={clearSession}
-          className="ml-auto flex items-center gap-2 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors"
+          className="ml-auto flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors"
         >
           <Trash2 size={16} />
           <span>Clear Trip</span>
@@ -409,7 +409,7 @@ const Chat = ({
             <input
               type="text"
               className="flex-grow p-3 bg-zinc-800 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-              placeholder="Describe your travel plans..."
+              placeholder="Send message"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}

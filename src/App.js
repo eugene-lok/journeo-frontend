@@ -34,10 +34,10 @@ function App() {
 
         {/* Map */}
         <div className="flex-1 flex flex-col rounded-xl bg-zinc-900 shadow-lg overflow-hidden">
-          <div className="px-4 py-3 bg-zinc-900 border-b border-zinc-700 flex justify-between items-center">
+          <div className="px-4 py-3 bg-zinc-900 border-b border-zinc-800 flex justify-between items-center">
             <button
               onClick={() => setShowItinerary(!showItinerary)}
-              className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`text-sm ml-auto flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 showItinerary 
                 ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700' 
                 : 'bg-teal-500 text-white hover:bg-teal-600'
