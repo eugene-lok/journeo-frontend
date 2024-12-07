@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Globe, Phone, MapPin, ExternalLink } from 'lucide-react';
 
 const Popup = ({ properties = null }) => {
   if (!properties) {
     return (
-      <div className="p-4 bg-white rounded-lg shadow-md">
-        <p className="text-xs text-gray-600">No data available.</p>
+      <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700">
+        <p className="text-zinc-400">No data available.</p>
       </div>
     );
   }
@@ -14,10 +15,7 @@ const Popup = ({ properties = null }) => {
     index,
     name,
     address,
-    isAirport,
-    primaryType,
     primaryTypeDisplayName,
-    googleId,
     website,
     googleMapsUri,
     phone,
@@ -30,52 +28,70 @@ const Popup = ({ properties = null }) => {
         : primaryTypeDisplayName;
     } catch (error) {
       console.error('Error parsing primaryTypeDisplayName:', error);
-      return null; 
+      return null;
     }
   })();
 
   return (
-    <div className="p-4 font-sans bg-white rounded-lg shadow-md max-w-xs">
-      <h2 className="text-lg font-medium">{name || 'N/A'}</h2>
-      <h3 className="text-sm font-medium">(Location {index || 'N/A'})</h3>
-      {primaryTypeDisplayNameText?.text && (
-        <p className="text-xs mt-1 font-bold text-gray-700">
-          {primaryTypeDisplayNameText.text}
-        </p>
-      )}
-      <p className="text-xs text-gray-600">{address || 'N/A'}</p>
+    <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700 max-w-xs">
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="px-2 py-0.5 bg-zinc-700 rounded text-xs text-zinc-100">
+              Location {index || 'N/A'}
+            </span>
+            {primaryTypeDisplayNameText?.text && (
+              <span className="px-2 py-0.5 bg-teal-500 text-zinc-100 rounded text-xs">
+                {primaryTypeDisplayNameText.text}
+              </span>
+            )}
+          </div>
+        </div>
 
-      {website && website !== 'N/A' && (
-        <p className="text-xs text-blue-600 mt-1">
-          <span className="font-semibold">Website:</span>{' '}
-          <a
-            href={website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            {website}
-          </a>
-        </p>
-      )}
-      {googleMapsUri && googleMapsUri !== 'N/A' && (
-        <p className="text-xs text-blue-600 mt-1">
-          <span className="font-semibold">Google Maps:</span>{' '}
-          <a
-            href={googleMapsUri}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            View on Maps
-          </a>
-        </p>
-      )}
-      {phone && phone !== 'N/A' && (
-        <p className="text-xs text-gray-500 mt-1">
-          <span className="font-semibold">Phone:</span> {phone}
-        </p>
-      )}
+        {address && (
+          <div className="flex items-start gap-2 text-zinc-300">
+            <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-zinc-400" />
+            <p className="text-sm">{address}</p>
+          </div>
+        )}
+
+        {/* Links */}
+        <div className="space-y-2 pt-1">
+          {website && website !== 'N/A' && (
+            <a
+              href={website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition-colors"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="truncate">Website</span>
+              <ExternalLink className="w-3 h-3 ml-auto" />
+            </a>
+          )}
+
+          {googleMapsUri && googleMapsUri !== 'N/A' && (
+            <a
+              href={googleMapsUri}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition-colors"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>View on Maps</span>
+              <ExternalLink className="w-3 h-3 ml-auto" />
+            </a>
+          )}
+
+          {phone && phone !== 'N/A' && (
+            <div className="flex items-center gap-2 text-sm text-zinc-300">
+              <Phone className="w-4 h-4 text-zinc-400" />
+              <span>{phone}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
