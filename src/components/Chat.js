@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, Trash2 } from 'lucide-react';
 
 const Chat = ({
   setMapLoading,
@@ -353,7 +353,7 @@ const Chat = ({
         </div>
         <div className="flex-1">
           <h3 className="text-zinc-100 text-xl font-semibold">
-            Plan Your Journey
+            Plan Your Trip
           </h3>
         </div>
       </div>
@@ -383,13 +383,19 @@ const Chat = ({
 );
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg relative">
-      <button
-        onClick={clearSession}
-        className="absolute top-2 right-2 p-2 text-red-400 hover:text-red-200 z-10"
-      >
-        Start Over
-      </button>
+    <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+        <button
+          onClick={clearSession}
+          className="ml-auto flex items-center gap-2 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors"
+        >
+          <Trash2 size={16} />
+          <span>Clear Trip</span>
+        </button>
+      </div>
+
+      {/* Main content */}
       <div className="flex flex-col h-full">
         <div className="flex-grow overflow-y-auto p-4 space-y-2 relative">
           {messages.length === 0 && renderOverlay()}
@@ -397,6 +403,7 @@ const Chat = ({
           <div ref={chatEndRef} />
         </div>
 
+        {/* Input area */}
         <div className="border-t border-zinc-800 p-4 mt-auto">
           <div className="flex items-center gap-2">
             <input
