@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, MessageSquare } from 'lucide-react';
 
 const Chat = ({
   setMapLoading,
@@ -9,12 +9,15 @@ const Chat = ({
   setRouteData,
   setShowItinerary
 }) => {
-  // Initialize state from localStorage if it exists
   const [messages, setMessages] = useState(() => {
     const savedMessages = localStorage.getItem('chatMessages');
-    return savedMessages ? JSON.parse(savedMessages) : [
-      { sender: 'bot', text: 'Hi! How can I help you plan your trip today?' }
-    ];
+    try {
+      const parsed = savedMessages ? JSON.parse(savedMessages) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Error parsing saved messages:', error);
+      return [];
+    }
   });
 
   const [input, setInput] = useState('');
@@ -274,7 +277,19 @@ const Chat = ({
     }
   };
 
-  // Add a method to clear session data
+  // Safe state setter for messages
+  const safeSetMessages = (newMessages) => {
+    // Ensure we're always setting an array
+    const safeMessages = Array.isArray(newMessages) ? newMessages : [];
+    setMessages(safeMessages);
+    try {
+      localStorage.setItem('chatMessages', JSON.stringify(safeMessages));
+    } catch (error) {
+      console.error('Error saving messages to localStorage:', error);
+    }
+  };
+
+  // Clear session data
   const clearSession = async () => {
     try {
       // Clear backend session first
@@ -290,15 +305,16 @@ const Chat = ({
         }
       }
 
-      // Then clear frontend state and localStorage
+      // Clear all localStorage items
       localStorage.removeItem('sessionId');
       localStorage.removeItem('chatMessages');
       localStorage.removeItem('extractedEntities');
       localStorage.removeItem('isPreferencesComplete');
       localStorage.removeItem('itineraryData');
       
+      // Reset all state with safe defaults
       setSessionId(null);
-      setMessages([{ sender: 'bot', text: 'Hi! How can I help you plan your trip today?' }]);
+      safeSetMessages([]);
       setExtractedEntities({});
       setIsPreferencesComplete(false);
       setItineraryData(null);
@@ -328,44 +344,83 @@ const Chat = ({
       </div>
     ));
 
-    return (
-      <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg relative">
-        <button
-          onClick={clearSession}
-          className="absolute top-2 right-2 p-2 text-red-400 hover:text-red-200 z-10"
-        >
-          Start Over
-        </button>
-        <div className="flex flex-col h-full">
-          <div className="flex-grow overflow-y-auto p-4 space-y-2">
-            {renderMessages()}
-            <div ref={chatEndRef} />
-          </div>
-    
-          <div className="border-t border-zinc-800 p-4 mt-auto">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                className="flex-grow p-3 bg-zinc-800 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-                placeholder="Send message"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-                disabled={isLoading}
-              />
-              <button
-                onClick={handleSend}
-                disabled={isLoading}
-                className="p-3 bg-teal-500 text-zinc-100 rounded-full hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Send message"
-              >
-                <Send size={20} />
-              </button>
-            </div>
+  const renderOverlay = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+    <div className="bg-zinc-800 p-8 rounded-2xl max-w-md w-full border border-zinc-700 shadow-xl">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="bg-teal-500/10 p-3 rounded-xl">
+          <MessageSquare className="h-6 w-6 text-teal-500" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-zinc-100 text-xl font-semibold">
+            Plan Your Journey
+          </h3>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700/50">
+          <p className="text-zinc-300 text-sm leading-relaxed">
+            Include these details in your description:
+          </p>
+          <ul className="mt-2 space-y-1 text-zinc-400 text-sm">
+            <li>• Destination</li>
+            <li>• Duration of trip</li>
+            <li>• Number of travelers</li>
+            <li>• Budget</li>
+          </ul>
+        </div>
+
+        <div className="bg-teal-500/5 p-4 rounded-xl border border-teal-500/10">
+          <p className="text-zinc-200 text-sm font-medium mb-2">Example</p>
+          <p className="text-zinc-400 text-sm italic">
+            "I want to plan a 5-day trip to New York City for 2 people next month with a budget of $3000"
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+  return (
+    <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg relative">
+      <button
+        onClick={clearSession}
+        className="absolute top-2 right-2 p-2 text-red-400 hover:text-red-200 z-10"
+      >
+        Start Over
+      </button>
+      <div className="flex flex-col h-full">
+        <div className="flex-grow overflow-y-auto p-4 space-y-2 relative">
+          {messages.length === 0 && renderOverlay()}
+          {renderMessages()}
+          <div ref={chatEndRef} />
+        </div>
+
+        <div className="border-t border-zinc-800 p-4 mt-auto">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              className="flex-grow p-3 bg-zinc-800 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              placeholder="Describe your travel plans..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleSend}
+              disabled={isLoading}
+              className="p-3 bg-teal-500 text-zinc-100 rounded-full hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
+            >
+              <Send size={20} />
+            </button>
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 };
 
 export default Chat;
