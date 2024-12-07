@@ -353,7 +353,7 @@ const Chat = ({
         </div>
         <div className="flex-1">
           <h3 className="text-zinc-100 text-xl font-semibold">
-            Plan Your Trip
+            Plan your trip
           </h3>
         </div>
       </div>

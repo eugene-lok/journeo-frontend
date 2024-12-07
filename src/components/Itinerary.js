@@ -36,7 +36,7 @@ const Itinerary = ({ itineraryData, itineraryLoading }) => {
   );
 
   const renderBudgetBreakdown = () => (
-    <div className="bg-zinc-800/50 rounded-lg p-6 mt-8">
+    <div className="bg-zinc-800/50 rounded-lg p-6 mt-6">
       <div className="flex items-center gap-2 mb-4">
         <WalletCards className="w-5 h-5 text-teal-500" />
         <h2 className="text-xl font-semibold text-zinc-100">Budget Breakdown</h2>
@@ -65,7 +65,7 @@ const Itinerary = ({ itineraryData, itineraryLoading }) => {
       <div className="flex flex-col items-center justify-center h-full bg-zinc-800/50 backdrop-blur-sm px-6 text-center">
         <Calendar className="h-12 w-12 text-zinc-600 mb-4" />
         <p className="text-zinc-400 text-sm mb-2">
-          Your travel itinerary will appear here
+          Your trip itinerary will appear here
         </p>
         <p className="text-zinc-500 text-xs">
           Start chatting to generate a personalized travel plan
@@ -79,7 +79,7 @@ const Itinerary = ({ itineraryData, itineraryLoading }) => {
     <div className="h-full overflow-y-auto">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-zinc-100 mb-6 pb-3 border-b border-zinc-700">
-          Your Travel Itinerary
+          Trip itinerary
         </h1>
         <div className="space-y-6">
           {itineraryData.itinerary.days.map((day) => (
