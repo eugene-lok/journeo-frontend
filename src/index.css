@@ -23,6 +23,10 @@ body, html {
   position: relative; 
 }
 
+/* .mapboxgl-popup-tip {
+  background-color:#27272a;
+  color: #27272a;
+} */
 .mapboxgl-popup-content h2{
   font-weight: bold
 }
@@ -39,4 +43,5 @@ body, html {
   padding-top: 2px;
   padding-right: 4px;
   font-size: 20px;
+  color: #f4f4f5;
 }
