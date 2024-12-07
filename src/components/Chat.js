@@ -82,13 +82,17 @@ const Chat = ({
     messages.map((msg, index) => (
       <div
         key={index}
-        className={`max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
-          msg.sender === 'user'
-            ? 'bg-teal-500 text-zinc-100 ml-auto rounded-br-sm'
-            : 'bg-zinc-800 text-zinc-100 mr-auto rounded-bl-sm'
-        }`}
+        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
       >
-        {msg.text}
+        <div
+          className={`inline-block max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
+            msg.sender === 'user'
+              ? 'bg-teal-500 text-zinc-100 rounded-br-sm text-right'
+              : 'bg-zinc-800 text-zinc-100 rounded-bl-sm'
+          }`}
+        >
+          {msg.text}
+        </div>
       </div>
     ));
 
