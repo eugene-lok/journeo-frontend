@@ -217,7 +217,7 @@ const Chat = ({
 
           const completionMessage = {
             sender: 'bot',
-            text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip. You can also click on the map markers to view details for each location."
+            text: itineraryData.response.itinerary.completionMessage
           };
           setMessages(prev => [...prev, completionMessage]);
           setShowItinerary(true);
