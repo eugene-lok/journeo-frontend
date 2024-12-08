@@ -7,7 +7,7 @@ import Popup from './Popup';
 const mapboxAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = mapboxAccessToken;
 
-const Map = ({ places = [], routes = [], mapLoading }) => {
+const Map = ({ itineraryData, places = [], routes = [], mapLoading }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
