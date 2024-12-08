@@ -32,6 +32,13 @@ function App() {
     return currentDay?.places || [];
   };
 
+  // Get routes for the selected day
+  const getCurrentDayRoutes = () => {
+    if (!itineraryData?.itinerary?.days) return [];
+    const currentDay = itineraryData.itinerary.days.find(day => day.day === selectedDay);
+    return currentDay?.routes || [];
+  };
+
   return (
     <div className="flex flex-col h-screen bg-zinc-950">
       <Navbar />
@@ -102,7 +109,7 @@ function App() {
             <Map
               itineraryData={itineraryData}
               places={getCurrentDayPlaces()}
-              //routes={routeData ? routeData.routes : []}
+              routes={getCurrentDayRoutes()}
               mapLoading={mapLoading}
             />
           
