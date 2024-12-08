@@ -15,7 +15,7 @@ const Map = ({ places = [], routes = [], mapLoading }) => {
   // Initialize map
   useEffect(() => {
     if (map.current) return;
-    const initialCoordinates = [-114, 51];
+    const initialCoordinates = [-74, 40.7];
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -64,12 +64,12 @@ const Map = ({ places = [], routes = [], mapLoading }) => {
     }
 
     // Reset to initial view
-    map.current.flyTo({
+    /* map.current.flyTo({
       center: [-74, 40.7],
       zoom: 10,
       bearing: 0,
       pitch: 0
-    });
+    }); */
   };
 
   // Add or update markers and routes
