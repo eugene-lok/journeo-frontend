@@ -7,8 +7,6 @@ import { Layers, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function App() {
   const [itineraryData, setItineraryData] = useState(null);
-  const [locationData, setLocationData] = useState(null);
-  const [routeData, setRouteData] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
   const [itineraryLoading, setItineraryLoading] = useState(false);
   const [showItinerary, setShowItinerary] = useState(false);
@@ -50,9 +48,7 @@ function App() {
             <Chat
               setMapLoading={setMapLoading}
               setItineraryLoading={setItineraryLoading}
-              setLocationData={setLocationData}
               setItineraryData={setItineraryData}
-              setRouteData={setRouteData}
               setShowItinerary={setShowItinerary}
             />
           </div>

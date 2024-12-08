@@ -4,9 +4,7 @@ import { Send, MessageSquare, Trash2 } from 'lucide-react';
 const Chat = ({
   setMapLoading,
   setItineraryLoading,
-  setLocationData,
   setItineraryData,
-  setRouteData,
   setShowItinerary
 }) => {
   const [messages, setMessages] = useState(() => {
@@ -87,8 +85,6 @@ const Chat = ({
     if (savedItinerary) {
       const itineraryData = JSON.parse(savedItinerary);
       setItineraryData(itineraryData);
-      setLocationData({ places: itineraryData.places });
-      setRouteData({ routes: itineraryData.routes });
       setShowItinerary(true);
     }
   }, []);
@@ -218,8 +214,6 @@ const Chat = ({
         if (itineraryData?.response?.itinerary) {
           localStorage.setItem('itineraryData', JSON.stringify(itineraryData.response));
           setItineraryData(itineraryData.response);
-          setLocationData({ places: itineraryData.response.places });
-          setRouteData({ routes: itineraryData.response.routes });
 
           const completionMessage = {
             sender: 'bot',
@@ -249,33 +243,33 @@ const Chat = ({
         sessionId: currentSessionId,
         entities: currentEntities
       });
-
+  
       const response = await fetch(`${API_BASE_URL}/api/chat/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: currentSessionId,
-          input: currentEntities
+          entities: currentEntities 
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to generate itinerary');
       }
-
+  
       const data = await response.json();
       
-      // Save itinerary data
       if (data.response?.itinerary) {
         localStorage.setItem('itineraryData', JSON.stringify(data.response));
       }
-
+  
       return data;
     } catch (error) {
       console.error('Error in itinerary generation:', error);
       throw error;
     }
   };
+  
 
   // Safe state setter for messages
   const safeSetMessages = (newMessages) => {
@@ -318,8 +312,6 @@ const Chat = ({
       setExtractedEntities({});
       setIsPreferencesComplete(false);
       setItineraryData(null);
-      setLocationData(null);
-      setRouteData(null);
       setShowItinerary(false);
     } catch (error) {
       console.error('Error during session cleanup:', error);
@@ -391,7 +383,7 @@ const Chat = ({
           className="ml-auto flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors"
         >
           <Trash2 size={16} />
-          <span>Clear Trip</span>
+          <span>Clear trip</span>
         </button>
       </div>
 
