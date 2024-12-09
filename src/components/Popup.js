@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Globe, Phone, MapPin, ExternalLink, Clock, Star } from 'lucide-react';
+import { Globe, Phone, MapPin, ExternalLink, Star } from 'lucide-react';
 
 const Popup = ({ properties = null }) => {
   if (!properties) {
@@ -50,14 +50,14 @@ const Popup = ({ properties = null }) => {
         </div>
       )}
       
-      <div className="p-4 space-y-3">
+      <div className="p-4">
         <div>
           <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
           {rating && (
               <div className="flex items-center gap-1 mt-1 text-zinc-300 py-0.5">
                 <Star className="w-4 h-4 stroke-zinc-400 fill-zinc-400" />
                 <span className="text-xs text-zinc-300">
-                {rating.toFixed(1)} ({userRatingCount} reviews)
+                {rating.toFixed(1)} ({userRatingCount})
                 </span>
               </div>
           )}
@@ -74,7 +74,7 @@ const Popup = ({ properties = null }) => {
         </div>
       
         {address && (
-          <div className="flex items-start gap-2 text-zinc-300">
+          <div className="flex items-start gap-2 pt-2 text-zinc-300">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-zinc-400" />
             <p className="text-sm">{address}</p>
           </div>
