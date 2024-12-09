@@ -119,6 +119,8 @@ function App() {
                 <Itinerary
                   itineraryData={itineraryData}
                   itineraryLoading={itineraryLoading}
+                  selectedDay={selectedDay}
+                  setSelectedDay={setSelectedDay}
                 />
               </div>
             </div>
