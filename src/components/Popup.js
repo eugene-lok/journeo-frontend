@@ -19,6 +19,7 @@ const Popup = ({ properties = null }) => {
     website,
     googleMapsUri,
     phone,
+    photoUri
   } = properties;
 
   const primaryTypeDisplayNameText = (() => {
@@ -35,6 +36,18 @@ const Popup = ({ properties = null }) => {
   return (
     <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700 max-w-xs">
       <div className="space-y-3">
+      {photoUri && (
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden -mt-2 -mx-2">
+            <img
+              src={photoUri}
+              alt={`Photo of ${name}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
         <div>
           <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
           <div className="flex items-center gap-2 mt-1">
@@ -108,6 +121,7 @@ Popup.propTypes = {
     website: PropTypes.string,
     googleMapsUri: PropTypes.string,
     phone: PropTypes.string,
+    photoUri: PropTypes.string
   }),
 };
 

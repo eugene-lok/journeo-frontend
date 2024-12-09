@@ -107,6 +107,7 @@ const Map = ({ itineraryData, places = [], routes = [], mapLoading }) => {
             website: place.details ? place.details.websiteUri : 'N/A',
             googleMapsUri: place.details ? place.details.googleMapsUri : 'N/A',
             phone: place.details ? place.details.nationalPhoneNumber : 'N/A',
+            photoUri: place.photoUri ? place.photoUri.photoDetails: 'N/A'
           },
         })),
         promoteId: 'id'
