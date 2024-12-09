@@ -37,7 +37,7 @@ const Popup = ({ properties = null }) => {
     <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700 max-w-xs">
       <div className="space-y-3">
       {photoUri && (
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden -mt-2 -mx-2">
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
             <img
               src={photoUri}
               alt={`Photo of ${name}`}
@@ -50,12 +50,12 @@ const Popup = ({ properties = null }) => {
         )}
         <div>
           <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="px-2 py-0.5 bg-zinc-700 rounded text-xs text-zinc-100">
+          <div className="flex flex-col gap-2 mt-1 w-fit">
+            <span className="px-2 py-0.5 bg-zinc-700 rounded text-xs text-zinc-100 w-fit">
               Location {index || 'N/A'}
             </span>
             {primaryTypeDisplayNameText?.text && (
-              <span className="px-2 py-0.5 bg-teal-500 text-zinc-100 rounded text-xs">
+              <span className="px-2 py-0.5 bg-teal-500 text-zinc-100 rounded text-xs w-fit">
                 {primaryTypeDisplayNameText.text}
               </span>
             )}
