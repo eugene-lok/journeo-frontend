@@ -5,8 +5,8 @@ import { Globe, Phone, MapPin, ExternalLink } from 'lucide-react';
 const Popup = ({ properties = null }) => {
   if (!properties) {
     return (
-      <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700">
-        <p className="text-zinc-400">No data available.</p>
+      <div className="bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700">
+        <p className="p-4 text-zinc-400">No data available.</p>
       </div>
     );
   }
@@ -34,20 +34,21 @@ const Popup = ({ properties = null }) => {
   })();
 
   return (
-    <div className="p-4 bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700 max-w-xs">
-      <div className="space-y-3">
+    <div className="bg-zinc-800 backdrop-blur-sm rounded-lg shadow-lg border border-zinc-700 max-w-xs overflow-hidden">
       {photoUri && (
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-            <img
-              src={photoUri}
-              alt={`Photo of ${name}`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
+        <div className="w-full aspect-[3/2]">
+          <img
+            src={photoUri}
+            alt={`Photo of ${name}`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+      
+      <div className="p-4 space-y-3">
         <div>
           <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
           <div className="flex flex-col gap-2 mt-1 w-fit">
@@ -69,7 +70,6 @@ const Popup = ({ properties = null }) => {
           </div>
         )}
 
-        {/* Links */}
         <div className="space-y-2 pt-1">
           {website && website !== 'N/A' && (
             <a
@@ -83,7 +83,7 @@ const Popup = ({ properties = null }) => {
               <ExternalLink className="w-3 h-3 ml-auto" />
             </a>
           )}
-
+          
           {googleMapsUri && googleMapsUri !== 'N/A' && (
             <a
               href={googleMapsUri}
