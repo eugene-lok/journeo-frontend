@@ -103,6 +103,8 @@ const Map = ({ itineraryData, places = [], routes = [], mapLoading }) => {
             isAirport: place.isAirport,
             primaryType: place.details ? place.details.primaryType : 'N/A',
             primaryTypeDisplayName: place.details ? place.details.primaryTypeDisplayName : 'N/A',
+            rating: place.details ? place.details.rating: "N/A",
+            userRatingCount: place.details ? place.details.userRatingCount: "N/A",
             googleId: place.predictedLocation.precisePlaceId,
             website: place.details ? place.details.websiteUri : 'N/A',
             googleMapsUri: place.details ? place.details.googleMapsUri : 'N/A',

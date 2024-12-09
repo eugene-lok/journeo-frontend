@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Globe, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Globe, Phone, MapPin, ExternalLink, Clock, Star } from 'lucide-react';
 
 const Popup = ({ properties = null }) => {
   if (!properties) {
@@ -19,7 +19,9 @@ const Popup = ({ properties = null }) => {
     website,
     googleMapsUri,
     phone,
-    photoUri
+    photoUri,
+    rating,
+    userRatingCount
   } = properties;
 
   const primaryTypeDisplayNameText = (() => {
@@ -51,6 +53,14 @@ const Popup = ({ properties = null }) => {
       <div className="p-4 space-y-3">
         <div>
           <h2 className="text-lg font-medium text-zinc-100">{name || 'N/A'}</h2>
+          {rating && (
+              <div className="flex items-center gap-1 mt-1 text-zinc-300 py-0.5">
+                <Star className="w-4 h-4 stroke-zinc-400 fill-zinc-400" />
+                <span className="text-xs text-zinc-300">
+                {rating.toFixed(1)} ({userRatingCount} reviews)
+                </span>
+              </div>
+          )}
           <div className="flex flex-col gap-2 mt-1 w-fit">
             <span className="px-2 py-0.5 bg-zinc-700 rounded text-xs text-zinc-100 w-fit">
               Location {index || 'N/A'}
@@ -62,7 +72,7 @@ const Popup = ({ properties = null }) => {
             )}
           </div>
         </div>
-
+      
         {address && (
           <div className="flex items-start gap-2 text-zinc-300">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-zinc-400" />
@@ -121,7 +131,9 @@ Popup.propTypes = {
     website: PropTypes.string,
     googleMapsUri: PropTypes.string,
     phone: PropTypes.string,
-    photoUri: PropTypes.string
+    photoUri: PropTypes.string,
+    rating: PropTypes.number,
+    userRatingCount: PropTypes.number,
   }),
 };
 
