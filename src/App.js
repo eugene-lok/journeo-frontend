@@ -111,7 +111,7 @@ function App() {
           
             {/* Itinerary panel */}
             <div
-              className={`absolute top-0 right-0 h-full w-1/3 bg-zinc-900 shadow-lg transition-transform duration-300 rounded-2xl ${
+              className={`absolute top-0 right-0 bottom-5 w-1/3 bg-zinc-900 shadow-lg transition-transform duration-300 rounded-2xl overflow-hidden ${
                 showItinerary ? 'translate-x-0' : 'translate-x-full'
               }`}
             >
