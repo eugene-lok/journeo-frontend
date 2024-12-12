@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin, Loader2, WalletCards } from 'lucide-react';
+import ItineraryExport from './ItineraryExport';
 
 const Itinerary = ({ itineraryData, itineraryLoading, selectedDay, setSelectedDay }) => {
   const renderPlace = (place) => (
@@ -88,6 +89,7 @@ const Itinerary = ({ itineraryData, itineraryLoading, selectedDay, setSelectedDa
         <h1 className="text-2xl font-bold text-zinc-100 mb-6 pb-3 border-b border-zinc-700">
           Trip itinerary
         </h1>
+        <ItineraryExport itineraryData={itineraryData} />
         <div className="space-y-6">
           {itineraryData.itinerary.days.map((day) => (
             <div key={day.day}>
