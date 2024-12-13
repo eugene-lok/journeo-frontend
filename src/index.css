@@ -40,8 +40,15 @@ body, html {
 }
 
 .mapboxgl-popup-close-button {
-  padding-top: 2px;
-  padding-right: 4px;
-  font-size: 20px;
-  color: #f4f4f5;
+  top: 4px !important;
+  right: 4px !important;
+  color: white !important;
+  font-size: 20px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  border-radius: 50% !important;
+  padding: 0 4px !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.8) !important;
 }
