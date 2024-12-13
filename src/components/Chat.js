@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare, Trash2 } from 'lucide-react';
+import { Send, MessageSquare, Trash2, AlertCircle } from 'lucide-react';
 
 const Chat = ({
   setMapLoading,
@@ -18,6 +18,8 @@ const Chat = ({
     }
   });
 
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
@@ -32,6 +34,45 @@ const Chat = ({
   const [isPreferencesComplete, setIsPreferencesComplete] = useState(() => {
     return localStorage.getItem('isPreferencesComplete') === 'true';
   });
+
+  const handleClearClick = () => {
+    setShowClearConfirmation(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearSession();
+    setShowClearConfirmation(false);
+  };
+
+  const ClearConfirmationDialog = () => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="bg-zinc-900 rounded-lg p-6 max-w-sm w-full mx-4 border border-zinc-800 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertCircle className="w-6 h-6 text-red-400" />
+          <h2 className="text-lg font-medium text-zinc-100">Clear trip?</h2>
+        </div>
+        
+        <p className="text-zinc-300 text-sm mb-6">
+          This will delete your current trip plan and chat history. This action cannot be undone.
+        </p>
+        
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setShowClearConfirmation(false)}
+            className="px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirmClear}
+            className="px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+          >
+            Clear trip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const chatEndRef = useRef(null);
 
@@ -379,7 +420,7 @@ const Chat = ({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <button
-          onClick={clearSession}
+          onClick={handleClearClick}
           className="ml-auto flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors"
         >
           <Trash2 size={16} />
@@ -418,6 +459,7 @@ const Chat = ({
           </div>
         </div>
       </div>
+      {showClearConfirmation && <ClearConfirmationDialog />}
     </div>
   );
 };
