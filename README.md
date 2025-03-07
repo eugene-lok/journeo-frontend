@@ -3,11 +3,14 @@
 ---
 
 ## About
-This is the frontend for Journeo, an LLM-based travel itinerary planner. It allows users to input their travel preferences such as budget, destinations, and duration to generate a personalized travel itinerary with OpenAI's GPT. Locations from this itinerary are displayed on an interactive map. 
+Journeo is a cutting-edge LLM-powered travel itinerary planner designed to help users generate personalized travel plans by describing their travel preferences through an intuitive chatbot interface. The frontend of this app is built using React.js and styled with Tailwind CSS, integrating seamlessly with the backend built with FastAPI and LangChain.
 
 ### Key Features:
-- User-friendly form to input travel preferences. 
-- Displays an interactive map using Mapbox, with dynamically generated locations.
+- **Chatbot Interface**: Interact with the LLM to generate personalized travel itineraries based on preferences.
+- **Interactive Map**: View travel locations on a Mapbox-powered map.
+- **Real-time Visualization**: Dynamic display of itineraries and routes based on user input.
+- **Seamless Integration**: Communicates with the backend for itinerary generation and geolocation services.
+
 ---
 
 ## Technologies Used 
