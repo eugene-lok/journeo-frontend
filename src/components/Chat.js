@@ -1,165 +1,467 @@
 import React, { useState, useRef, useEffect } from 'react';
-const Chat = ({setMapLoading, setItineraryLoading, setLocationData, setItineraryData, setRouteData, setShowItinerary}) => {
-    const [messages, setMessages] = useState([
-      {sender: 'bot', text: 'Hi! How can I help you plan your trip today?'}
-    ]); 
-    const [input, setInput] = useState(''); 
-    const [isLoading, setIsLoading] = useState(false); 
-    const chatEndRef = useRef(null); 
-  
-    const scrollToBottom = () => {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-  
-    useEffect(() => {
-      scrollToBottom();
-    }, [messages]);
-    
-    // Production URL
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-    // Local URL
-    //const API_BASE_URL = 'http://127.0.0.1:8000';
+import { Send, MessageSquare, Trash2, AlertCircle } from 'lucide-react';
 
-    // Handle user input submission
-    const handleSend = async () => {
-        if (!input.trim()) return;
-      
-        const userMessage = { sender: 'user', text: input };
-        setMessages((prev) => [...prev, userMessage]);
-        setInput('');
-      
-        setIsLoading(true);
-        setItineraryLoading(true);  // Start itinerary spinner
-        setMapLoading(true);  // Start map spinner
-      
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/chat/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input }),
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to fetch response');
-          }
-          
-          const data = await response.json();
-          console.log("data: ", data);
-          if (typeof data?.response === 'string') {
-            const botMessage = { sender: 'bot', text: data.response };
-            setMessages((prev) => [...prev, botMessage]);
-          }
-          // Set data and alternate chat message if itinerary recieved
-          else if (data.response.hasOwnProperty('itinerary')) {
-            setItineraryData(data.response); 
-            setLocationData({
-              places: data.response.places
-            });
-            setRouteData({
-              routes: data.response.routes
-            }) 
-            
-            const completionMessage = { sender: 'bot', text: "Your itinerary has been generated! Let us know if you'd like to make any changes or ask questions about your trip."};
-            setMessages((prev) => [...prev, completionMessage]);
-            setShowItinerary(true); // Show itinerary
-          }
-          
-        } 
-        catch (error) {
-          console.log('Error:', error);
-          const errorMessage = { sender: 'bot', text: 'Something went wrong. Please try again.' };
-          setMessages((prev) => [...prev, errorMessage]);
-        } 
-        finally {
-          setIsLoading(false);
-          setItineraryLoading(false);  // Stop itinerary spinner
-          setMapLoading(false);  // Stop map spinner
-        }
-    };
-    
-    // Render chat messages
-    const renderMessages = () => 
-      messages.map((msg, index) => (
-        <div
-          key={index}
-          className={`p-2 rounded-lg my-2 ${
-            msg.sender === 'user' ? 'bg-emerald-500 text-white self-end' : 'bg-zinc-800 text-black self-start'
-          }`}
-        >
-          {parseMarkdown(msg.text)}
-        </div>
-      ));
-
-    // Helper function to parse markdown in messages
-    const parseMarkdown = (text) => {
-  // Split the text by newline
-  const lines = text.split('\n');
-  
-  return lines.map((line, index) => {
-    // Parse bold markdown
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    if (boldRegex.test(line)) {
-      const parts = line.split(boldRegex);
-      return (
-        <p key={index} className="text-white">
-          {parts.map((part, i) => 
-            i % 2 === 1 ? <span key={i} className="font-bold">{part}</span> : part
-          )}
-        </p>
-      );
+const Chat = ({
+  setMapLoading,
+  setItineraryLoading,
+  setItineraryData,
+  setShowItinerary
+}) => {
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem('chatMessages');
+    try {
+      const parsed = savedMessages ? JSON.parse(savedMessages) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Error parsing saved messages:', error);
+      return [];
     }
-
-    // Parse horizontal rule
-    if (line.startsWith('---')) {
-      return <hr key={index} className="border-t border-gray-300 my-4" />;
-    }
-
-    // Parse bullet points
-    if (line.startsWith('-')) {
-      return (
-        <li key={index} className="ml-4 mb-2 text-white list-disc">
-          {line.replace(/^- /, '').trim()}
-        </li>
-      );
-    }
-
-    // Parse remaining lines
-    return (
-      <p key={index} className=" text-white self-end">
-        {line.trim()}
-      </p>
-    );
   });
-};
 
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem('sessionId') || null;
+  });
   
-    return (
-      <div className="flex flex-col h-full p-6 bg-gray-100">
-        <div className="flex-grow overflow-y-auto flex flex-col space-y-2">
-          {renderMessages()}
-          <div ref={chatEndRef} /> 
+  const [extractedEntities, setExtractedEntities] = useState(() => {
+    const savedEntities = localStorage.getItem('extractedEntities');
+    return savedEntities ? JSON.parse(savedEntities) : {};
+  });
+
+  const [isPreferencesComplete, setIsPreferencesComplete] = useState(() => {
+    return localStorage.getItem('isPreferencesComplete') === 'true';
+  });
+
+  const handleClearClick = () => {
+    setShowClearConfirmation(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearSession();
+    setShowClearConfirmation(false);
+  };
+
+  const ClearConfirmationDialog = () => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="bg-zinc-900 rounded-lg p-6 max-w-sm w-full mx-4 border border-zinc-800 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertCircle className="w-6 h-6 text-red-400" />
+          <h2 className="text-lg font-medium text-zinc-100">Clear trip?</h2>
         </div>
-  
-        <div className="mt-4 flex">
-          <input
-            type="text"
-            className="flex-grow p-2 border rounded-l-lg"
-            placeholder="Send message"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-          />
+        
+        <p className="text-zinc-300 text-sm mb-6">
+          This will delete your current trip plan and chat history. This action cannot be undone.
+        </p>
+        
+        <div className="flex justify-end gap-3">
           <button
-            onClick={handleSend}
-            className="p-2 bg-emerald-500 text-white rounded-r-lg hover:bg-emerald-700"
-            disabled={isLoading}
+            onClick={() => setShowClearConfirmation(false)}
+            className="px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors"
           >
-            {isLoading ? 'Sending' : 'Send'}
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirmClear}
+            className="px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+          >
+            Clear trip
           </button>
         </div>
       </div>
-    );
+    </div>
+  );
+
+  const chatEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    const validateStoredSession = async () => {
+      const sid = localStorage.getItem('sessionId');
+      if (sid) {
+        const isValid = await validateSession(sid);
+        if (!isValid) {
+          // If stored session is invalid, clear everything
+          await clearSession();
+        }
+      }
+    };
+
+    validateStoredSession();
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (sessionId) {
+      localStorage.setItem('sessionId', sessionId);
+    } else {
+      localStorage.removeItem('sessionId');
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('extractedEntities', JSON.stringify(extractedEntities));
+  }, [extractedEntities]);
+
+  useEffect(() => {
+    localStorage.setItem('isPreferencesComplete', isPreferencesComplete);
+  }, [isPreferencesComplete]);
+
+  // Restore itinerary display if it exists
+  useEffect(() => {
+    const savedItinerary = localStorage.getItem('itineraryData');
+    if (savedItinerary) {
+      const itineraryData = JSON.parse(savedItinerary);
+      setItineraryData(itineraryData);
+      setShowItinerary(true);
+    }
+  }, []);
+  const API_BASE_URL = 'https://journeo-backend.onrender.com';
+
+  // Validate session with backend
+  const validateSession = async (sid) => {
+    if (!sid) return false;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/validate-session/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: sid }),
+      });
+
+      if (!response.ok) {
+        console.log('Session invalid or expired');
+        await clearSession();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error validating session:', error);
+      await clearSession();
+      return false;
+    }
+  };
+
+  // Check session validity on component mount and after inactivity
+  useEffect(() => {
+    const checkSession = async () => {
+      const sid = localStorage.getItem('sessionId');
+      if (sid) {
+        const isValid = await validateSession(sid);
+        if (!isValid) {
+          // Session expired or invalid - clear everything
+          await clearSession();
+        }
+      }
+    };
+
+    checkSession();
+
+    // Revalidate session after user inactivity
+    let inactivityTimer;
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(checkSession, 15 * 60 * 1000); // Check every 15 minutes
+    };
+
+    // Reset timer on user interaction
+    window.addEventListener('mousemove', resetTimer);
+    window.addEventListener('keypress', resetTimer);
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keypress', resetTimer);
+    };
+  }, []);
+
+  const handlePreferenceExtraction = async (userInput) => {
+    try {
+      const requestBody = {
+        userInput: userInput,
+        ...(sessionId && { sessionId })
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/extract-preferences/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to extract preferences');
+      }
+
+      const data = await response.json();
+      console.log("Preference extraction response:", data);
+      
+      // Store session ID and extracted entities
+      if (data.sessionId) {
+        setSessionId(data.sessionId);
+      }
+      
+      setExtractedEntities(data.extractedEntities);
+      setIsPreferencesComplete(data.isComplete);
+
+      if (!data.isComplete && data.clarificationMessage) {
+        const botMessage = { sender: 'bot', text: data.clarificationMessage };
+        setMessages(prev => [...prev, botMessage]);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in preference extraction:', error);
+      throw error;
+    }
+  };
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = { sender: 'user', text: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+
+    setIsLoading(true);
+    setItineraryLoading(true);
+    setMapLoading(true);
+
+    try {
+      const preferencesData = await handlePreferenceExtraction(input.trim());
+      console.log("Extracted Preferences:", preferencesData);
+
+      if (preferencesData.isComplete) {
+        const itineraryData = await handleItineraryGeneration(
+          preferencesData.sessionId,
+          preferencesData.extractedEntities
+        );
+        
+        console.log("Itinerary:", itineraryData);
+        
+        if (itineraryData?.response?.itinerary) {
+          localStorage.setItem('itineraryData', JSON.stringify(itineraryData.response));
+          setItineraryData(itineraryData.response);
+
+          const completionMessage = {
+            sender: 'bot',
+            text: itineraryData.response.itinerary.completionMessage
+          };
+          setMessages(prev => [...prev, completionMessage]);
+          setShowItinerary(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      const errorMessage = {
+        sender: 'bot',
+        text: 'Something went wrong. Please try again.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setItineraryLoading(false);
+      setMapLoading(false);
+    }
+  };
+
+  const handleItineraryGeneration = async (currentSessionId, currentEntities) => {
+    try {
+      console.log("Sending itinerary request with:", {
+        sessionId: currentSessionId,
+        entities: currentEntities
+      });
+  
+      const response = await fetch(`${API_BASE_URL}/api/chat/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: currentSessionId,
+          entities: currentEntities 
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to generate itinerary');
+      }
+  
+      const data = await response.json();
+      
+      if (data.response?.itinerary) {
+        localStorage.setItem('itineraryData', JSON.stringify(data.response));
+      }
+  
+      return data;
+    } catch (error) {
+      console.error('Error in itinerary generation:', error);
+      throw error;
+    }
   };
   
-  export default Chat;
+
+  // Safe state setter for messages
+  const safeSetMessages = (newMessages) => {
+    // Ensure we're always setting an array
+    const safeMessages = Array.isArray(newMessages) ? newMessages : [];
+    setMessages(safeMessages);
+    try {
+      localStorage.setItem('chatMessages', JSON.stringify(safeMessages));
+    } catch (error) {
+      console.error('Error saving messages to localStorage:', error);
+    }
+  };
+
+  // Clear session data
+  const clearSession = async () => {
+    try {
+      // Clear backend session first
+      if (sessionId) {
+        const response = await fetch(`${API_BASE_URL}/api/clear-session/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (!response.ok) {
+          console.error('Error clearing backend session');
+        }
+      }
+
+      // Clear all localStorage items
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('chatMessages');
+      localStorage.removeItem('extractedEntities');
+      localStorage.removeItem('isPreferencesComplete');
+      localStorage.removeItem('itineraryData');
+      
+      // Reset all state with safe defaults
+      setSessionId(null);
+      safeSetMessages([]);
+      setExtractedEntities({});
+      setIsPreferencesComplete(false);
+      setItineraryData(null);
+      setShowItinerary(false);
+    } catch (error) {
+      console.error('Error during session cleanup:', error);
+    }
+  };
+
+  const renderMessages = () =>
+    messages.map((msg, index) => (
+      <div
+        key={index}
+        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+      >
+        <div
+          className={`inline-block max-w-[80%] p-3 rounded-2xl my-2 shadow-md transition-all ${
+            msg.sender === 'user'
+              ? 'bg-teal-500 text-zinc-100 rounded-br-sm'
+              : 'bg-zinc-800 text-zinc-100 rounded-bl-sm'
+          }`}
+        >
+          {msg.text}
+        </div>
+      </div>
+    ));
+
+  const renderOverlay = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+    <div className="bg-zinc-800 p-8 rounded-2xl max-w-md w-full border border-zinc-700 shadow-xl">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="bg-teal-500/10 p-3 rounded-xl">
+          <MessageSquare className="h-6 w-6 text-teal-500" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-zinc-100 text-xl font-semibold">
+            Plan your trip
+          </h3>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700/50">
+          <p className="text-zinc-300 text-sm leading-relaxed">
+            Include these details in your description:
+          </p>
+          <ul className="mt-2 space-y-1 text-zinc-400 text-sm">
+            <li>• Destination</li>
+            <li>• Duration of trip</li>
+            <li>• Number of travelers</li>
+            <li>• Budget</li>
+          </ul>
+        </div>
+
+        <div className="bg-teal-500/5 p-4 rounded-xl border border-teal-500/10">
+          <p className="text-zinc-200 text-sm font-medium mb-2">Example</p>
+          <p className="text-zinc-400 text-sm italic">
+            "I want to plan a 5-day trip to New York City for 2 people next month with a budget of $3000"
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+  return (
+    <div className="flex flex-col h-full bg-zinc-900 rounded-lg shadow-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+        <button
+          onClick={handleClearClick}
+          className="ml-auto flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-zinc-300 hover:bg-zinc-400/10 rounded-md transition-colors"
+        >
+          <Trash2 size={16} />
+          <span>Clear trip</span>
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-col h-full">
+        <div className="flex-grow overflow-y-auto p-4 space-y-2 relative">
+          {messages.length === 0 && renderOverlay()}
+          {renderMessages()}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Input area */}
+        <div className="border-t border-zinc-800 p-4 mt-auto">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              className="flex-grow p-3 bg-zinc-800 rounded-full placeholder-zinc-400 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              placeholder="Send message"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleSend}
+              disabled={isLoading}
+              className="p-3 bg-teal-500 text-zinc-100 rounded-full hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+      {showClearConfirmation && <ClearConfirmationDialog />}
+    </div>
+  );
+};
+
+export default Chat;

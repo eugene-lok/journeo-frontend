@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "@fontsource/roboto";
 
 /* Ensure the map container and its parent elements are correctly sized */
 .map-container {
@@ -22,11 +23,32 @@ body, html {
   position: relative; 
 }
 
-.mapboxgl-popup-content {
-  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-}
-
+/* .mapboxgl-popup-tip {
+  background-color:#27272a;
+  color: #27272a;
+} */
 .mapboxgl-popup-content h2{
   font-weight: bold
 }
-;
+;.mapboxgl-map {
+  @apply font-roboto
+}
+
+.mapboxgl-popup-content {
+  border-radius: 0.5rem;
+  @apply px-0 py-0;
+}
+
+.mapboxgl-popup-close-button {
+  top: 4px !important;
+  right: 4px !important;
+  color: white !important;
+  font-size: 20px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  border-radius: 50% !important;
+  padding: 0 4px !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.8) !important;
+}

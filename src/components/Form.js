@@ -94,7 +94,7 @@ const Form = ({ setMapLoading, setItineraryLoading, setLocationData, setItinerar
         />
       </div>
 
-      <button type="submit" className="w-full py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors">
+      <button type="submit" className="w-full py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors">
         Generate Itinerary
       </button>
       
