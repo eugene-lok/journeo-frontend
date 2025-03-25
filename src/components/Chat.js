@@ -129,7 +129,7 @@ const Chat = ({
       setShowItinerary(true);
     }
   }, []);
-  const API_BASE_URL = 'https://journeo-backend.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   // Validate session with backend
   const validateSession = async (sid) => {
